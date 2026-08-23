@@ -2,21 +2,23 @@
 {% block titulo %}Movimientos de inventario - NovaERP{% endblock %}
 {% block contenido %}
 <h4 class="mb-3">Movimientos de inventario</h4>
-<table class="table bg-white kpi-card">
+<div class="kpi-card overflow-hidden">
+<table class="table nova-table mb-0">
     <thead><tr><th>Fecha</th><th>Producto</th><th>Tipo</th><th>Cantidad</th><th>Referencia</th></tr></thead>
     <tbody>
     {% for m in movimientos %}
         <tr>
-            <td>{{ m.fecha|date:"Y-m-d H:i" }}</td>
-            <td>{{ m.producto.nombre }}</td>
-            <td>{{ m.get_tipo_display }}</td>
+            <td class="text-muted">{{ m.fecha|date:"Y-m-d H:i" }}</td>
+            <td class="fw-semibold">{{ m.producto.nombre }}</td>
+            <td><span class="badge-pill {% if m.tipo == 'ENTRADA' %}icon-green{% else %}icon-red{% endif %}">{{ m.get_tipo_display }}</span></td>
             <td>{{ m.cantidad }}</td>
-            <td>{{ m.referencia }}</td>
+            <td class="text-muted">{{ m.referencia }}</td>
         </tr>
     {% empty %}
-        <tr><td colspan="5" class="text-center text-muted">Sin movimientos registrados.</td></tr>
+        <tr><td colspan="5" class="text-center text-muted py-4">Sin movimientos registrados.</td></tr>
     {% endfor %}
     </tbody>
 </table>
+</div>
 {% include "partials/paginacion.html" with page_obj=page_obj %}
 {% endblock %}

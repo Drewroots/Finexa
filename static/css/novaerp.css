@@ -1,0 +1,209 @@
+:root {
+    --nova-bg: #f4f5fb;
+    --nova-surface: #ffffff;
+    --nova-border: #e7e9f3;
+    --nova-text: #1b1f3b;
+    --nova-text-muted: #6b7195;
+    --nova-primary: #4f46e5;
+    --nova-primary-dark: #4338ca;
+    --nova-primary-soft: #eef0fd;
+    --nova-sidebar-bg: #14152b;
+    --nova-sidebar-text: #a6a9c8;
+    --nova-sidebar-active: #4f46e5;
+    --nova-success: #16a34a;
+    --nova-success-soft: #e8f8ee;
+    --nova-warning: #d97706;
+    --nova-warning-soft: #fef3e2;
+    --nova-danger: #dc2626;
+    --nova-danger-soft: #fdecec;
+    --nova-info: #0284c7;
+    --nova-radius: 14px;
+    --nova-shadow: 0 1px 2px rgba(20, 21, 43, 0.04), 0 6px 20px -8px rgba(20, 21, 43, 0.10);
+}
+
+body {
+    background-color: var(--nova-bg);
+    color: var(--nova-text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 0.94rem;
+}
+
+h1, h2, h3, h4, h5, h6 { letter-spacing: -0.02em; font-weight: 650; }
+
+a { text-decoration: none; }
+
+/* Topbar */
+.nova-topbar {
+    background: var(--nova-surface);
+    border-bottom: 1px solid var(--nova-border);
+    padding: 0.7rem 1.5rem;
+}
+.nova-brand {
+    font-weight: 800;
+    font-size: 1.15rem;
+    letter-spacing: -0.03em;
+    color: var(--nova-text);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.nova-brand-mark {
+    width: 30px; height: 30px; border-radius: 9px;
+    background: linear-gradient(135deg, var(--nova-primary), #8b5cf6);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 800; font-size: 0.85rem;
+}
+.nova-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--nova-primary-soft); color: var(--nova-primary);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.8rem;
+}
+
+/* Sidebar */
+.nova-sidebar {
+    background: var(--nova-sidebar-bg);
+    min-height: calc(100vh - 57px);
+    width: 240px;
+    padding: 1.25rem 0.9rem;
+}
+.nova-sidebar .nav-link {
+    color: var(--nova-sidebar-text);
+    font-size: 0.88rem;
+    font-weight: 500;
+    padding: 0.55rem 0.8rem;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-bottom: 2px;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.nova-sidebar .nav-link i { font-size: 1rem; width: 1.1rem; text-align: center; }
+.nova-sidebar .nav-link:hover { background: rgba(255,255,255,0.06); color: #fff; }
+.nova-sidebar .nav-link.active { background: var(--nova-sidebar-active); color: #fff; }
+.nova-sidebar-section {
+    text-transform: uppercase;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    color: #565a80;
+    font-weight: 700;
+    padding: 0.9rem 0.8rem 0.3rem;
+}
+
+/* Cards */
+.kpi-card {
+    background: var(--nova-surface);
+    border: 1px solid var(--nova-border);
+    border-radius: var(--nova-radius);
+    box-shadow: var(--nova-shadow);
+}
+.stat-tile {
+    background: var(--nova-surface);
+    border: 1px solid var(--nova-border);
+    border-radius: var(--nova-radius);
+    box-shadow: var(--nova-shadow);
+    padding: 1.1rem 1.25rem;
+}
+.stat-tile .stat-icon {
+    width: 38px; height: 38px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.05rem; margin-bottom: 0.6rem;
+}
+.stat-tile .stat-label { color: var(--nova-text-muted); font-size: 0.8rem; font-weight: 600; }
+.stat-tile .stat-value { font-size: 1.55rem; font-weight: 750; letter-spacing: -0.02em; }
+
+.icon-indigo { background: var(--nova-primary-soft); color: var(--nova-primary); }
+.icon-green { background: var(--nova-success-soft); color: var(--nova-success); }
+.icon-amber { background: var(--nova-warning-soft); color: var(--nova-warning); }
+.icon-red { background: var(--nova-danger-soft); color: var(--nova-danger); }
+
+/* Tables */
+.table { --bs-table-bg: transparent; }
+.nova-table thead th {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--nova-text-muted);
+    font-weight: 700;
+    border-bottom: 1px solid var(--nova-border);
+    background: #fafafe;
+}
+.nova-table tbody tr:hover { background: #fafaff; }
+.nova-table td, .nova-table th { vertical-align: middle; padding: 0.7rem 0.9rem; }
+
+/* Badges */
+.badge-pill { border-radius: 999px; font-weight: 600; font-size: 0.72rem; padding: 0.35em 0.75em; }
+.badge-estado-BORRADOR { background: #eef0f5; color: #5a5f7a; }
+.badge-estado-EMITIDA { background: var(--nova-primary-soft); color: var(--nova-primary); }
+.badge-estado-PAGADA { background: var(--nova-success-soft); color: var(--nova-success); }
+.badge-estado-ANULADA { background: var(--nova-danger-soft); color: var(--nova-danger); }
+
+/* Buttons */
+.btn-primary {
+    background: var(--nova-primary);
+    border-color: var(--nova-primary);
+    font-weight: 600;
+    border-radius: 10px;
+}
+.btn-primary:hover { background: var(--nova-primary-dark); border-color: var(--nova-primary-dark); }
+.btn-outline-secondary { border-radius: 10px; font-weight: 600; }
+.btn-sm { border-radius: 8px; }
+
+/* Forms */
+.form-control, .form-select {
+    border-radius: 10px;
+    border-color: var(--nova-border);
+    font-size: 0.9rem;
+}
+.form-control:focus, .form-select:focus {
+    border-color: var(--nova-primary);
+    box-shadow: 0 0 0 3px var(--nova-primary-soft);
+}
+
+/* Auth pages */
+.auth-shell {
+    min-height: 100vh;
+    display: flex;
+}
+.auth-hero {
+    flex: 1.1;
+    background: radial-gradient(circle at 20% 20%, #6d28d9, #4338ca 55%, #14152b 100%);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 4rem;
+}
+.auth-hero h1 { font-size: 2.1rem; font-weight: 800; letter-spacing: -0.03em; }
+.auth-hero p { color: rgba(255,255,255,0.78); max-width: 420px; }
+.auth-form-side {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--nova-bg);
+    padding: 2rem;
+}
+.auth-card {
+    width: 100%;
+    max-width: 380px;
+    background: var(--nova-surface);
+    border-radius: 18px;
+    box-shadow: var(--nova-shadow);
+    border: 1px solid var(--nova-border);
+    padding: 2rem;
+}
+@media (max-width: 900px) {
+    .auth-hero { display: none; }
+}
+
+.chat-bubble {
+    border-radius: 12px;
+    padding: 0.55rem 0.85rem;
+    margin-bottom: 0.4rem;
+    font-size: 0.87rem;
+    max-width: 90%;
+}
+.chat-bubble.user { background: var(--nova-primary-soft); color: var(--nova-primary-dark); margin-left: auto; }
+.chat-bubble.bot { background: #f4f5fb; color: var(--nova-text); }

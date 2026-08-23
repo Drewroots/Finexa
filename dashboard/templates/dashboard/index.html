@@ -1,51 +1,59 @@
 {% extends "base.html" %}
 {% block titulo %}Panel - NovaERP{% endblock %}
 {% block contenido %}
-<h4 class="mb-3">Panel de decisión</h4>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0">Panel de decisión</h4>
+        <p class="text-muted small mb-0">Así va tu negocio hoy, {{ request.user.first_name|default:request.user.username }}.</p>
+    </div>
+</div>
 
 <div class="row g-3 mb-4">
-    <div class="col-md-3">
-        <div class="card kpi-card p-3">
-            <div class="text-muted small">Ventas del mes</div>
-            <div class="fs-4 fw-bold">${{ kpis.ventas_mes|floatformat:0 }}</div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-tile">
+            <div class="stat-icon icon-indigo"><i class="bi bi-graph-up-arrow"></i></div>
+            <div class="stat-label">Ventas del mes</div>
+            <div class="stat-value">${{ kpis.ventas_mes|floatformat:0 }}</div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card kpi-card p-3">
-            <div class="text-muted small">Cuentas por cobrar</div>
-            <div class="fs-4 fw-bold">${{ kpis.cuentas_por_cobrar|floatformat:0 }}</div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-tile">
+            <div class="stat-icon icon-amber"><i class="bi bi-wallet2"></i></div>
+            <div class="stat-label">Cuentas por cobrar</div>
+            <div class="stat-value">${{ kpis.cuentas_por_cobrar|floatformat:0 }}</div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card kpi-card p-3">
-            <div class="text-muted small">Facturas vencidas</div>
-            <div class="fs-4 fw-bold">{{ kpis.facturas_vencidas|length }}</div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-tile">
+            <div class="stat-icon icon-red"><i class="bi bi-exclamation-triangle-fill"></i></div>
+            <div class="stat-label">Facturas vencidas</div>
+            <div class="stat-value">{{ kpis.facturas_vencidas|length }}</div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card kpi-card p-3">
-            <div class="text-muted small">IVA por pagar</div>
-            <div class="fs-4 fw-bold">${{ kpis.impuestos_por_pagar|floatformat:0 }}</div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-tile">
+            <div class="stat-icon icon-green"><i class="bi bi-receipt-cutoff"></i></div>
+            <div class="stat-label">IVA por pagar</div>
+            <div class="stat-value">${{ kpis.impuestos_por_pagar|floatformat:0 }}</div>
         </div>
     </div>
 </div>
 
 <div class="row g-3">
-    <div class="col-md-6">
-        <div class="card kpi-card p-3 mb-3">
-            <h6>Flujo de caja proyectado (cartera por cobrar)</h6>
-            <table class="table table-sm mb-0">
-                <tr><td>30 días</td><td class="text-end">${{ kpis.flujo_proyectado.30|floatformat:0 }}</td></tr>
-                <tr><td>60 días</td><td class="text-end">${{ kpis.flujo_proyectado.60|floatformat:0 }}</td></tr>
-                <tr><td>90 días</td><td class="text-end">${{ kpis.flujo_proyectado.90|floatformat:0 }}</td></tr>
-            </table>
+    <div class="col-lg-7">
+        <div class="kpi-card p-3 mb-3">
+            <h6 class="mb-3"><i class="bi bi-bar-chart-line text-primary"></i> Flujo de caja proyectado</h6>
+            <canvas id="flujoChart" height="140"></canvas>
         </div>
-        <div class="card kpi-card p-3">
-            <h6>Productos bajo stock mínimo</h6>
+        <div class="kpi-card p-3">
+            <h6 class="mb-3"><i class="bi bi-box-seam text-warning"></i> Productos bajo stock mínimo</h6>
             {% if kpis.productos_bajo_stock %}
-            <ul class="mb-0">
+            <ul class="list-unstyled mb-0">
                 {% for p in kpis.productos_bajo_stock %}
-                <li>{{ p.nombre }} — quedan {{ p.stock_actual }} {{ p.unidad_medida }}</li>
+                <li class="d-flex justify-content-between border-bottom py-2">
+                    <span>{{ p.nombre }}</span>
+                    <span class="badge-pill icon-red">{{ p.stock_actual }} {{ p.unidad_medida }}</span>
+                </li>
                 {% endfor %}
             </ul>
             {% else %}
@@ -53,21 +61,43 @@
             {% endif %}
         </div>
     </div>
-    <div class="col-md-6">
-        <div class="card kpi-card p-3">
-            <h6>Asistente NovaERP</h6>
+    <div class="col-lg-5">
+        <div class="kpi-card p-3 d-flex flex-column" style="height: 100%;">
+            <h6 class="mb-1"><i class="bi bi-stars text-primary"></i> Asistente NovaERP</h6>
             <p class="text-muted small">Pregunta en lenguaje natural sobre las finanzas de tu negocio.</p>
-            <div id="chat-log" class="mb-2" style="max-height: 260px; overflow-y: auto;"></div>
+            <div id="chat-log" class="mb-2 flex-grow-1" style="min-height: 220px; max-height: 320px; overflow-y: auto;"></div>
             <form id="chat-form" class="d-flex gap-2">
                 {% csrf_token %}
                 <input type="text" id="pregunta" class="form-control" placeholder="¿Cuánto debo en impuestos este mes?">
-                <button type="submit" class="btn btn-primary">Preguntar</button>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-send-fill"></i></button>
             </form>
         </div>
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script>
+new Chart(document.getElementById('flujoChart'), {
+    type: 'bar',
+    data: {
+        labels: ['30 días', '60 días', '90 días'],
+        datasets: [{
+            label: 'Cartera por cobrar',
+            data: [{{ kpis.flujo_proyectado.30 }}, {{ kpis.flujo_proyectado.60 }}, {{ kpis.flujo_proyectado.90 }}],
+            backgroundColor: '#4f46e5',
+            borderRadius: 8,
+            maxBarThickness: 56,
+        }]
+    },
+    options: {
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, grid: { color: '#eef0f5' } },
+            x: { grid: { display: false } },
+        },
+    },
+});
+
 document.getElementById('chat-form').addEventListener('submit', async function (e) {
     e.preventDefault();
     const input = document.getElementById('pregunta');
@@ -75,8 +105,9 @@ document.getElementById('chat-form').addEventListener('submit', async function (
     const pregunta = input.value.trim();
     if (!pregunta) return;
 
-    log.insertAdjacentHTML('beforeend', `<div class="mb-1"><strong>Tú:</strong> ${pregunta}</div>`);
+    log.insertAdjacentHTML('beforeend', `<div class="chat-bubble user">${pregunta}</div>`);
     input.value = '';
+    log.scrollTop = log.scrollHeight;
 
     const resp = await fetch("{% url 'dashboard:asistente' %}", {
         method: 'POST',
@@ -87,7 +118,7 @@ document.getElementById('chat-form').addEventListener('submit', async function (
         body: 'pregunta=' + encodeURIComponent(pregunta),
     });
     const data = await resp.json();
-    log.insertAdjacentHTML('beforeend', `<div class="mb-2 text-primary"><strong>NovaERP:</strong> ${data.respuesta}</div>`);
+    log.insertAdjacentHTML('beforeend', `<div class="chat-bubble bot">${data.respuesta}</div>`);
     log.scrollTop = log.scrollHeight;
 });
 </script>

@@ -1,21 +1,29 @@
 {% extends "base.html" %}
 {% block titulo %}Crear cuenta - NovaERP{% endblock %}
 {% block contenido_publico %}
-<div class="d-flex align-items-center justify-content-center" style="min-height: 100vh;">
-    <div class="card kpi-card p-4" style="width: 440px;">
-        <h3 class="mb-3 text-center">Registra tu empresa</h3>
-        <form method="post">
-            {% csrf_token %}
-            {% for field in form %}
-            <div class="mb-3">
-                <label class="form-label">{{ field.label }}</label>
-                {{ field }}
-                {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
-            </div>
-            {% endfor %}
-            <button type="submit" class="btn btn-primary w-100">Crear cuenta</button>
-        </form>
-        <p class="text-center mt-3 mb-0 small">¿Ya tienes cuenta? <a href="{% url 'core:login' %}">Inicia sesión</a></p>
+<div class="auth-shell">
+    <div class="auth-hero">
+        <span class="nova-brand-mark mb-4" style="width:46px;height:46px;font-size:1.2rem;">N</span>
+        <h1>Crea tu empresa en NovaERP</h1>
+        <p>En un solo paso tienes plan de cuentas, facturación e inventario listos para usar. Sin instalaciones, sin curva de aprendizaje eterna.</p>
+    </div>
+    <div class="auth-form-side">
+        <div class="auth-card" style="max-width: 440px;">
+            <h4 class="mb-1">Registra tu empresa</h4>
+            <p class="text-muted small mb-4">Crea tu cuenta de dueño en menos de un minuto</p>
+            <form method="post">
+                {% csrf_token %}
+                {% for field in form %}
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">{{ field.label }}</label>
+                    {{ field }}
+                    {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-primary w-100">Crear cuenta</button>
+            </form>
+            <p class="text-center mt-3 mb-0 small text-muted">¿Ya tienes cuenta? <a href="{% url 'core:login' %}">Inicia sesión</a></p>
+        </div>
     </div>
 </div>
 {% endblock %}
