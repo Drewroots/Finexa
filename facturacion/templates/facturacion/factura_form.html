@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block titulo %}Nueva factura - NovaERP{% endblock %}
+{% block contenido %}
+<h4 class="mb-3">Nueva factura</h4>
+<form method="post">
+    {% csrf_token %}
+    <div class="card kpi-card p-3 mb-3">
+        <div class="row">
+        {% for field in form %}
+            <div class="col-md-4 mb-3">
+                <label class="form-label small">{{ field.label }}</label>
+                {{ field }}
+                {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+            </div>
+        {% endfor %}
+        </div>
+        {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+    </div>
+
+    <div class="card kpi-card p-3 mb-3">
+        <h6>Ítems</h6>
+        {% if formset.non_form_errors %}<div class="alert alert-danger">{{ formset.non_form_errors }}</div>{% endif %}
+        {{ formset.management_form }}
+        <table class="table table-sm">
+            <thead><tr><th>Producto</th><th>Cantidad</th><th>Precio unitario</th><th>% IVA</th><th>Eliminar</th></tr></thead>
+            <tbody>
+            {% for item_form in formset %}
+                <tr>
+                    {% for hidden in item_form.hidden_fields %}{{ hidden }}{% endfor %}
+                    <td>{{ item_form.producto }}</td>
+                    <td>{{ item_form.cantidad }}</td>
+                    <td>{{ item_form.precio_unitario }}</td>
+                    <td>{{ item_form.porcentaje_iva }}</td>
+                    <td class="text-center">{% if item_form.instance.pk %}{{ item_form.DELETE }}{% endif %}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Guardar borrador</button>
+    <a href="{% url 'facturacion:lista' %}" class="btn btn-outline-secondary">Cancelar</a>
+</form>
+{% endblock %}

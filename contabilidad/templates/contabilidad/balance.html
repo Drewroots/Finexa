@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block titulo %}Balance de comprobación - NovaERP{% endblock %}
+{% block contenido %}
+<h4 class="mb-3">Balance de comprobación</h4>
+<table class="table bg-white kpi-card">
+    <thead><tr><th>Cuenta</th><th>Tipo</th><th class="text-end">Débitos</th><th class="text-end">Créditos</th><th class="text-end">Saldo</th></tr></thead>
+    <tbody>
+    {% for fila in cuentas %}
+        <tr>
+            <td>{{ fila.cuenta.codigo }} - {{ fila.cuenta.nombre }}</td>
+            <td>{{ fila.cuenta.get_tipo_display }}</td>
+            <td class="text-end">${{ fila.debito|floatformat:0 }}</td>
+            <td class="text-end">${{ fila.credito|floatformat:0 }}</td>
+            <td class="text-end fw-bold">${{ fila.saldo|floatformat:0 }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block titulo %}Facturación - NovaERP{% endblock %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">Facturas</h4>
+    <a href="{% url 'facturacion:crear' %}" class="btn btn-primary btn-sm">+ Nueva factura</a>
+</div>
+<table class="table bg-white kpi-card">
+    <thead><tr><th>N°</th><th>Cliente</th><th>Emisión</th><th>Vence</th><th>Total</th><th>Saldo</th><th>Estado</th></tr></thead>
+    <tbody>
+    {% for f in facturas %}
+        <tr>
+            <td><a href="{% url 'facturacion:detalle' f.pk %}">#{{ f.numero|stringformat:"05d" }}</a></td>
+            <td>{{ f.cliente.razon_social }}</td>
+            <td>{{ f.fecha_emision }}</td>
+            <td>{{ f.fecha_vencimiento }}</td>
+            <td>${{ f.total|floatformat:0 }}</td>
+            <td>${{ f.saldo_pendiente|floatformat:0 }}</td>
+            <td><span class="badge badge-estado-{{ f.estado }}">{{ f.get_estado_display }}</span></td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="7" class="text-center text-muted">Aún no hay facturas. Crea la primera.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% include "partials/paginacion.html" with page_obj=page_obj %}
+{% endblock %}
