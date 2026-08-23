@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block titulo %}Panel - NovaERP{% endblock %}
+{% block contenido %}
+<h4 class="mb-3">Panel de decisión</h4>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card kpi-card p-3">
+            <div class="text-muted small">Ventas del mes</div>
+            <div class="fs-4 fw-bold">${{ kpis.ventas_mes|floatformat:0 }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card kpi-card p-3">
+            <div class="text-muted small">Cuentas por cobrar</div>
+            <div class="fs-4 fw-bold">${{ kpis.cuentas_por_cobrar|floatformat:0 }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card kpi-card p-3">
+            <div class="text-muted small">Facturas vencidas</div>
+            <div class="fs-4 fw-bold">{{ kpis.facturas_vencidas|length }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card kpi-card p-3">
+            <div class="text-muted small">IVA por pagar</div>
+            <div class="fs-4 fw-bold">${{ kpis.impuestos_por_pagar|floatformat:0 }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card kpi-card p-3 mb-3">
+            <h6>Flujo de caja proyectado (cartera por cobrar)</h6>
+            <table class="table table-sm mb-0">
+                <tr><td>30 días</td><td class="text-end">${{ kpis.flujo_proyectado.30|floatformat:0 }}</td></tr>
+                <tr><td>60 días</td><td class="text-end">${{ kpis.flujo_proyectado.60|floatformat:0 }}</td></tr>
+                <tr><td>90 días</td><td class="text-end">${{ kpis.flujo_proyectado.90|floatformat:0 }}</td></tr>
+            </table>
+        </div>
+        <div class="card kpi-card p-3">
+            <h6>Productos bajo stock mínimo</h6>
+            {% if kpis.productos_bajo_stock %}
+            <ul class="mb-0">
+                {% for p in kpis.productos_bajo_stock %}
+                <li>{{ p.nombre }} — quedan {{ p.stock_actual }} {{ p.unidad_medida }}</li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="text-muted mb-0 small">Todo el inventario está en niveles saludables.</p>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card kpi-card p-3">
+            <h6>Asistente NovaERP</h6>
+            <p class="text-muted small">Pregunta en lenguaje natural sobre las finanzas de tu negocio.</p>
+            <div id="chat-log" class="mb-2" style="max-height: 260px; overflow-y: auto;"></div>
+            <form id="chat-form" class="d-flex gap-2">
+                {% csrf_token %}
+                <input type="text" id="pregunta" class="form-control" placeholder="¿Cuánto debo en impuestos este mes?">
+                <button type="submit" class="btn btn-primary">Preguntar</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('chat-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const input = document.getElementById('pregunta');
+    const log = document.getElementById('chat-log');
+    const pregunta = input.value.trim();
+    if (!pregunta) return;
+
+    log.insertAdjacentHTML('beforeend', `<div class="mb-1"><strong>Tú:</strong> ${pregunta}</div>`);
+    input.value = '';
+
+    const resp = await fetch("{% url 'dashboard:asistente' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+        body: 'pregunta=' + encodeURIComponent(pregunta),
+    });
+    const data = await resp.json();
+    log.insertAdjacentHTML('beforeend', `<div class="mb-2 text-primary"><strong>NovaERP:</strong> ${data.respuesta}</div>`);
+    log.scrollTop = log.scrollHeight;
+});
+</script>
+{% endblock %}
