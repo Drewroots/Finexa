@@ -1,0 +1,12 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      NOVAERP_DEBUG: "True"
+      NOVAERP_ALLOWED_HOSTS: "127.0.0.1,localhost"
+      NOVAERP_SEED_DEMO: "True"
+    volumes:
+      - .:/app
+    command: python manage.py runserver 0.0.0.0:8000
