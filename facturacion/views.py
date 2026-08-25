@@ -2,7 +2,6 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Max
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import DetailView, ListView
 
@@ -10,7 +9,7 @@ from core.mixins import EmpresaQuerysetMixin
 
 from .forms import FacturaForm, FacturaItemFormSet, PagoForm
 from .models import Factura
-from .services import recalcular_totales, emitir_factura, registrar_pago
+from .services import asignar_numero_factura, recalcular_totales, emitir_factura, registrar_pago
 
 
 class FacturaListView(EmpresaQuerysetMixin, ListView):
@@ -48,9 +47,7 @@ def factura_crear(request):
                 factura = form.save(commit=False)
                 factura.empresa = empresa
                 factura.usuario = request.user
-                ultimo = Factura.objects.filter(empresa=empresa).aggregate(Max("numero"))["numero__max"] or 0
-                factura.numero = ultimo + 1
-                factura.save()
+                asignar_numero_factura(factura)
 
                 formset = FacturaItemFormSet(
                     request.POST, instance=factura, form_kwargs={"empresa": empresa}

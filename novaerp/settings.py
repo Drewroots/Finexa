@@ -5,14 +5,20 @@ Configuración de Django para NovaERP.
 from pathlib import Path
 import os
 
+from django.core.exceptions import ImproperlyConfigured
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get(
-    "NOVAERP_SECRET_KEY",
-    "django-insecure-xcm2z-7k6k0gp#+b3emud!8g&6kq@#r#d2dbw%hke_3!w%fcbo",
-)
-
 DEBUG = os.environ.get("NOVAERP_DEBUG", "True") == "True"
+
+SECRET_KEY = os.environ.get("NOVAERP_SECRET_KEY")
+if not SECRET_KEY:
+    if not DEBUG:
+        raise ImproperlyConfigured(
+            "Define la variable de entorno NOVAERP_SECRET_KEY cuando NOVAERP_DEBUG=False."
+        )
+    # Clave insegura solo para desarrollo local (NOVAERP_DEBUG=True).
+    SECRET_KEY = "django-insecure-xcm2z-7k6k0gp#+b3emud!8g&6kq@#r#d2dbw%hke_3!w%fcbo"
 
 ALLOWED_HOSTS = os.environ.get("NOVAERP_ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 

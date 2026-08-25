@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.db import IntegrityError, transaction
 
 from contabilidad.services import (
     CUENTA_CLIENTES,
@@ -13,6 +13,31 @@ from productos.services import registrar_movimiento
 
 from .models import Factura, FacturaItem
 
+MAX_INTENTOS_NUMERACION = 5
+
+
+def asignar_numero_factura(factura):
+    """Asigna y guarda un número de factura consecutivo por empresa.
+
+    `factura` debe ser una instancia sin guardar (numero aún sin asignar). El número
+    consecutivo se calcula con MAX(numero)+1, lo que es vulnerable a condiciones de
+    carrera si dos facturas se crean al mismo tiempo para la misma empresa; por eso
+    reintentamos ante el IntegrityError de la restricción unique_together en vez de
+    dejar que se propague como error 500.
+    """
+    for _ in range(MAX_INTENTOS_NUMERACION):
+        ultimo_numero = Factura.objects.filter(empresa=factura.empresa).order_by("-numero").values_list(
+            "numero", flat=True
+        ).first() or 0
+        factura.numero = ultimo_numero + 1
+        try:
+            with transaction.atomic():
+                factura.save()
+            return factura
+        except IntegrityError:
+            continue
+    raise ValidationError("No se pudo asignar un número de factura, intenta de nuevo.")
+
 
 @transaction.atomic
 def crear_factura_borrador(empresa, cliente, fecha_emision, fecha_vencimiento, items, usuario=None, notas=""):
@@ -20,19 +45,15 @@ def crear_factura_borrador(empresa, cliente, fecha_emision, fecha_vencimiento, i
 
     `items` es una lista de dicts: {"producto": Producto, "cantidad": Decimal, "precio_unitario": Decimal}
     """
-    ultimo_numero = Factura.objects.filter(empresa=empresa).order_by("-numero").values_list(
-        "numero", flat=True
-    ).first() or 0
-
-    factura = Factura.objects.create(
+    factura = Factura(
         empresa=empresa,
-        numero=ultimo_numero + 1,
         cliente=cliente,
         fecha_emision=fecha_emision,
         fecha_vencimiento=fecha_vencimiento,
         usuario=usuario,
         notas=notas,
     )
+    asignar_numero_factura(factura)
 
     for item in items:
         FacturaItem.objects.create(
