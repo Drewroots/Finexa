@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block titulo %}Verificación en dos pasos - NovaERP{% endblock %}
+{% block contenido_publico %}
+<div class="auth-shell">
+    <div class="auth-hero">
+        <span class="nova-brand-mark mb-4" style="width:46px;height:46px;font-size:1.2rem;">N</span>
+        <h1>NovaERP</h1>
+        <p>Ingresa el código de 6 dígitos de tu aplicación de autenticación (Google Authenticator, Authy, etc.).</p>
+    </div>
+    <div class="auth-form-side">
+        <div class="auth-card">
+            <h4 class="mb-1"><i class="bi bi-shield-lock-fill"></i> Verificación en dos pasos</h4>
+            <p class="text-muted small mb-4">Tu cuenta tiene 2FA activado</p>
+            <form method="post">
+                {% csrf_token %}
+                {% if form.codigo.errors %}<div class="alert alert-danger py-2 small">{{ form.codigo.errors|join:" " }}</div>{% endif %}
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Código</label>
+                    {{ form.codigo }}
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Verificar</button>
+            </form>
+            <p class="text-center mt-3 mb-0 small"><a href="{% url 'core:login' %}">Cancelar e iniciar sesión de nuevo</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

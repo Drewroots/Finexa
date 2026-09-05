@@ -56,3 +56,11 @@ class PagoForm(forms.Form):
 
     monto = forms.DecimalField(max_digits=14, decimal_places=2, widget=forms.NumberInput(attrs={"class": "form-control"}))
     cuenta_destino = forms.ChoiceField(choices=CUENTA_CHOICES, widget=forms.Select(attrs={"class": "form-select"}))
+
+
+class NotaCreditoDebitoForm(forms.Form):
+    TIPO_CHOICES = [("CREDITO", "Nota crédito"), ("DEBITO", "Nota débito")]
+
+    tipo = forms.ChoiceField(choices=TIPO_CHOICES, widget=forms.Select(attrs={"class": "form-select"}))
+    valor = forms.DecimalField(max_digits=14, decimal_places=2, widget=forms.NumberInput(attrs={"class": "form-control"}))
+    motivo = forms.CharField(max_length=255, widget=forms.TextInput(attrs={"class": "form-control"}))

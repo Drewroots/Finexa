@@ -59,3 +59,18 @@ class InvitarUsuarioForm(forms.ModelForm):
         if commit:
             usuario.save()
         return usuario
+
+
+class CodigoTOTPForm(forms.Form):
+    codigo = forms.CharField(
+        label="Código de 6 dígitos",
+        max_length=6,
+        min_length=6,
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "inputmode": "numeric", "autocomplete": "one-time-code", "autofocus": True}
+        ),
+    )
+
+
+class DesactivarTOTPForm(forms.Form):
+    password = forms.CharField(label="Confirma tu contraseña", widget=forms.PasswordInput(attrs={"class": "form-control"}))

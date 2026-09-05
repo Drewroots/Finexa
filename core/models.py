@@ -45,6 +45,8 @@ class Usuario(AbstractUser):
     )
     rol = models.CharField(max_length=20, choices=ROL_CHOICES, default=ROL_VENDEDOR)
     telefono = models.CharField(max_length=30, blank=True)
+    totp_secret = models.CharField(max_length=32, blank=True)
+    totp_habilitado = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = "Usuario"

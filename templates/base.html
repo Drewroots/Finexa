@@ -19,6 +19,7 @@
         <span class="text-muted small d-none d-md-inline">{{ request.empresa.nombre }}</span>
         <span class="badge-pill icon-indigo">{{ user.get_rol_display }}</span>
         <span class="nova-avatar">{{ user.username|slice:":2"|upper }}</span>
+        <a href="{% url 'core:activar_2fa' %}" class="btn btn-sm btn-outline-secondary" title="Seguridad"><i class="bi bi-shield-lock"></i></a>
         <a href="{% url 'core:logout' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-box-arrow-right"></i> Salir</a>
     </span>
 </nav>

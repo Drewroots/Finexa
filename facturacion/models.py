@@ -74,3 +74,34 @@ class FacturaItem(models.Model):
 
     def __str__(self):
         return f"{self.producto.nombre} x{self.cantidad}"
+
+
+class NotaCreditoDebito(models.Model):
+    """Ajuste posterior sobre una factura ya emitida (HU-21)."""
+
+    TIPO_CHOICES = [
+        ("CREDITO", "Nota crédito"),
+        ("DEBITO", "Nota débito"),
+    ]
+
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name="notas_credito_debito")
+    factura = models.ForeignKey(Factura, on_delete=models.PROTECT, related_name="notas_cxd")
+    numero = models.PositiveIntegerField()
+    tipo = models.CharField(max_length=10, choices=TIPO_CHOICES)
+    valor = models.DecimalField(max_digits=14, decimal_places=2)
+    motivo = models.CharField(max_length=255)
+    fecha = models.DateField()
+    usuario = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, blank=True)
+    transaccion = models.ForeignKey(
+        "contabilidad.Transaccion", on_delete=models.PROTECT, related_name="notas_credito_debito"
+    )
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Nota crédito/débito"
+        verbose_name_plural = "Notas crédito/débito"
+        ordering = ["-fecha", "-numero"]
+        unique_together = ("empresa", "numero")
+
+    def __str__(self):
+        return f"Nota {self.get_tipo_display()} #{self.numero:05d} - Factura #{self.factura.numero:05d}"

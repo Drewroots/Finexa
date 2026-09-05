@@ -39,10 +39,30 @@
                 <div class="text-danger fw-semibold small">Saldo pendiente: ${{ factura.saldo_pendiente|floatformat:0 }}</div>
             </div>
         </div>
+
+        {% if notas_cxd %}
+        <div class="kpi-card p-3 mb-3">
+            <h6><i class="bi bi-arrow-left-right"></i> Notas crédito/débito</h6>
+            <table class="table nova-table table-sm mb-0">
+                <thead><tr><th>#</th><th>Tipo</th><th>Motivo</th><th class="text-end">Valor</th><th>Fecha</th></tr></thead>
+                <tbody>
+                {% for nota in notas_cxd %}
+                    <tr>
+                        <td>{{ nota.numero|stringformat:"05d" }}</td>
+                        <td>{{ nota.get_tipo_display }}</td>
+                        <td>{{ nota.motivo }}</td>
+                        <td class="text-end">${{ nota.valor|floatformat:0 }}</td>
+                        <td>{{ nota.fecha }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
     </div>
     <div class="col-md-4">
         {% if factura.estado == "EMITIDA" and factura.saldo_pendiente > 0 %}
-        <div class="kpi-card p-3">
+        <div class="kpi-card p-3 mb-3">
             <h6><i class="bi bi-cash-coin text-success"></i> Registrar pago</h6>
             <form method="post" action="{% url 'facturacion:pagar' factura.pk %}">
                 {% csrf_token %}
@@ -53,6 +73,21 @@
                 </div>
                 {% endfor %}
                 <button type="submit" class="btn btn-success w-100">Registrar pago</button>
+            </form>
+        </div>
+        {% endif %}
+        {% if factura.estado == "EMITIDA" or factura.estado == "PAGADA" %}
+        <div class="kpi-card p-3">
+            <h6><i class="bi bi-arrow-left-right text-warning"></i> Emitir nota crédito/débito</h6>
+            <form method="post" action="{% url 'facturacion:nota' factura.pk %}">
+                {% csrf_token %}
+                {% for field in nota_form %}
+                <div class="mb-2">
+                    <label class="form-label small fw-semibold">{{ field.label }}</label>
+                    {{ field }}
+                </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-outline-warning w-100">Emitir nota</button>
             </form>
         </div>
         {% endif %}

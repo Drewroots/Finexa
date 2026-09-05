@@ -7,9 +7,15 @@ from django.views.generic import DetailView, ListView
 
 from core.mixins import EmpresaQuerysetMixin
 
-from .forms import FacturaForm, FacturaItemFormSet, PagoForm
+from .forms import FacturaForm, FacturaItemFormSet, NotaCreditoDebitoForm, PagoForm
 from .models import Factura
-from .services import asignar_numero_factura, recalcular_totales, emitir_factura, registrar_pago
+from .services import (
+    asignar_numero_factura,
+    crear_nota_credito_debito,
+    recalcular_totales,
+    emitir_factura,
+    registrar_pago,
+)
 
 
 class FacturaListView(EmpresaQuerysetMixin, ListView):
@@ -30,6 +36,8 @@ class FacturaDetailView(EmpresaQuerysetMixin, DetailView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx["pago_form"] = PagoForm()
+        ctx["nota_form"] = NotaCreditoDebitoForm()
+        ctx["notas_cxd"] = self.object.notas_cxd.order_by("-fecha", "-numero")
         return ctx
 
 
@@ -84,6 +92,26 @@ def factura_emitir(request, pk):
             messages.success(request, f"Factura #{factura.numero:05d} emitida correctamente.")
         except ValidationError as exc:
             messages.error(request, exc.message if hasattr(exc, "message") else str(exc))
+    return redirect("facturacion:detalle", pk=pk)
+
+
+@login_required
+def factura_nota(request, pk):
+    factura = get_object_or_404(Factura, pk=pk, empresa=request.empresa)
+    if request.method == "POST":
+        form = NotaCreditoDebitoForm(request.POST)
+        if form.is_valid():
+            try:
+                crear_nota_credito_debito(
+                    factura,
+                    tipo=form.cleaned_data["tipo"],
+                    valor=form.cleaned_data["valor"],
+                    motivo=form.cleaned_data["motivo"],
+                    usuario=request.user,
+                )
+                messages.success(request, "Nota registrada correctamente.")
+            except ValidationError as exc:
+                messages.error(request, exc.message if hasattr(exc, "message") else str(exc))
     return redirect("facturacion:detalle", pk=pk)
 
 

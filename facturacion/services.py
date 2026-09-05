@@ -11,7 +11,7 @@ from contabilidad.services import (
 )
 from productos.services import registrar_movimiento
 
-from .models import Factura, FacturaItem
+from .models import Factura, FacturaItem, NotaCreditoDebito
 
 MAX_INTENTOS_NUMERACION = 5
 
@@ -151,3 +151,83 @@ def registrar_pago(factura, monto, cuenta_destino_codigo, usuario=None, fecha=No
         factura.saldo_pendiente = Decimal("0")
     factura.save(update_fields=["saldo_pendiente", "estado"])
     return factura
+
+
+@transaction.atomic
+def crear_nota_credito_debito(factura, tipo, valor, motivo, usuario=None, fecha=None):
+    """Emite una nota credito/debito sobre una factura ya emitida (HU-21).
+
+    Simplificacion: `valor` se trata como un monto total (sin desglose de IVA
+    propio) que ajusta directamente Ingresos y Cuentas por cobrar. Suficiente
+    para el MVP; un desglose formal de IVA en la nota queda para una iteracion
+    posterior si se requiere.
+    """
+    from django.utils import timezone
+
+    if factura.estado not in ("EMITIDA", "PAGADA"):
+        raise ValidationError("Solo se pueden emitir notas sobre facturas emitidas.")
+    if valor <= 0:
+        raise ValidationError("El valor de la nota debe ser mayor a cero.")
+    if tipo == "CREDITO" and valor > factura.total:
+        raise ValidationError("La nota crédito no puede superar el total de la factura.")
+
+    fecha = fecha or timezone.localdate()
+
+    if tipo == "CREDITO":
+        lineas = [
+            (CUENTA_INGRESOS_VENTAS, valor, Decimal("0")),
+            (CUENTA_CLIENTES, Decimal("0"), valor),
+        ]
+    else:
+        lineas = [
+            (CUENTA_CLIENTES, valor, Decimal("0")),
+            (CUENTA_INGRESOS_VENTAS, Decimal("0"), valor),
+        ]
+
+    transaccion = crear_transaccion(
+        empresa=factura.empresa,
+        fecha=fecha,
+        descripcion=f"Nota {tipo.lower()} sobre factura #{factura.numero:05d}: {motivo}",
+        lineas=lineas,
+        documento_origen=f"Factura #{factura.numero:05d}",
+        usuario=usuario,
+    )
+
+    nota = None
+    for _ in range(MAX_INTENTOS_NUMERACION):
+        ultimo_numero = NotaCreditoDebito.objects.filter(empresa=factura.empresa).order_by("-numero").values_list(
+            "numero", flat=True
+        ).first() or 0
+        try:
+            with transaction.atomic():
+                nota = NotaCreditoDebito.objects.create(
+                    empresa=factura.empresa,
+                    factura=factura,
+                    numero=ultimo_numero + 1,
+                    tipo=tipo,
+                    valor=valor,
+                    motivo=motivo,
+                    fecha=fecha,
+                    usuario=usuario,
+                    transaccion=transaccion,
+                )
+            break
+        except IntegrityError:
+            continue
+    if nota is None:
+        raise ValidationError("No se pudo asignar un número de nota, intenta de nuevo.")
+
+    if tipo == "CREDITO":
+        factura.total -= valor
+        factura.saldo_pendiente = max(factura.saldo_pendiente - valor, Decimal("0"))
+    else:
+        factura.total += valor
+        factura.saldo_pendiente += valor
+
+    if factura.saldo_pendiente <= 0 and factura.estado == "EMITIDA":
+        factura.estado = "PAGADA"
+    elif factura.saldo_pendiente > 0 and factura.estado == "PAGADA":
+        factura.estado = "EMITIDA"
+    factura.save(update_fields=["total", "saldo_pendiente", "estado"])
+
+    return nota

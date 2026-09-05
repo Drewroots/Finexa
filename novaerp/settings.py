@@ -2,6 +2,7 @@
 Configuración de Django para NovaERP.
 """
 
+from decimal import Decimal
 from pathlib import Path
 import os
 
@@ -102,3 +103,21 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'core:login'
 LOGIN_REDIRECT_URL = 'dashboard:index'
 LOGOUT_REDIRECT_URL = 'core:login'
+
+# Email: por defecto imprime los correos en consola (dev). En producción,
+# define NOVAERP_EMAIL_HOST (y el resto de NOVAERP_EMAIL_*) para usar SMTP real.
+if os.environ.get("NOVAERP_EMAIL_HOST"):
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = os.environ["NOVAERP_EMAIL_HOST"]
+    EMAIL_PORT = int(os.environ.get("NOVAERP_EMAIL_PORT", "587"))
+    EMAIL_HOST_USER = os.environ.get("NOVAERP_EMAIL_HOST_USER", "")
+    EMAIL_HOST_PASSWORD = os.environ.get("NOVAERP_EMAIL_HOST_PASSWORD", "")
+    EMAIL_USE_TLS = os.environ.get("NOVAERP_EMAIL_USE_TLS", "True") == "True"
+else:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+DEFAULT_FROM_EMAIL = os.environ.get("NOVAERP_DEFAULT_FROM_EMAIL", "no-responder@novaerp.local")
+
+# Nomina: valores de referencia 2026 (COP). Ajustar cada ano segun decreto del
+# Gobierno colombiano; ver contabilidad de nomina en docs/HISTORIAS_USUARIO.md HU-28.
+SALARIO_MINIMO_LEGAL = Decimal("1423500")
+AUXILIO_TRANSPORTE = Decimal("200000")
