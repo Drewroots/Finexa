@@ -3,7 +3,13 @@ import pyotp
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.views import LoginView
+from django.contrib.auth.views import (
+    LoginView,
+    PasswordResetCompleteView,
+    PasswordResetConfirmView,
+    PasswordResetDoneView,
+    PasswordResetView,
+)
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 
@@ -12,6 +18,19 @@ from .models import Usuario
 
 SESSION_KEY_PRE_2FA_USER = "pre_2fa_user_id"
 SESSION_KEY_PENDING_TOTP_SECRET = "pending_totp_secret"
+
+
+class RedirigirSiAutenticadoMixin:
+    """Evita renderizar paginas publicas (contenido_publico) a un usuario ya logueado.
+
+    base.html solo renderiza el bloque `contenido_publico` cuando el usuario NO esta
+    autenticado, así que sin este mixin un usuario logueado vería una página en blanco.
+    """
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect("dashboard:index")
+        return super().dispatch(request, *args, **kwargs)
 
 
 class NovaLoginView(LoginView):
@@ -24,6 +43,26 @@ class NovaLoginView(LoginView):
             self.request.session[SESSION_KEY_PRE_2FA_USER] = usuario.pk
             return redirect("core:verificar_2fa")
         return super().form_valid(form)
+
+
+class NovaPasswordResetView(RedirigirSiAutenticadoMixin, PasswordResetView):
+    template_name = "core/password_reset_form.html"
+    email_template_name = "core/password_reset_email.html"
+    subject_template_name = "core/password_reset_subject.txt"
+    success_url = reverse_lazy("core:password_reset_done")
+
+
+class NovaPasswordResetDoneView(RedirigirSiAutenticadoMixin, PasswordResetDoneView):
+    template_name = "core/password_reset_done.html"
+
+
+class NovaPasswordResetConfirmView(RedirigirSiAutenticadoMixin, PasswordResetConfirmView):
+    template_name = "core/password_reset_confirm.html"
+    success_url = reverse_lazy("core:password_reset_complete")
+
+
+class NovaPasswordResetCompleteView(RedirigirSiAutenticadoMixin, PasswordResetCompleteView):
+    template_name = "core/password_reset_complete.html"
 
 
 def registro(request):
