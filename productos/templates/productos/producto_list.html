@@ -4,29 +4,38 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="mb-0">Productos y servicios</h4>
     <div class="d-flex gap-2">
-        <a href="{% url 'productos:movimientos' %}" class="btn btn-outline-secondary btn-sm">Movimientos</a>
-        <a href="{% url 'productos:crear' %}" class="btn btn-primary btn-sm">+ Nuevo</a>
+        <a href="{% url 'productos:movimientos' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-clock-history"></i> Movimientos</a>
+        <a href="{% url 'productos:crear' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Nuevo</a>
     </div>
 </div>
 <form class="mb-3" method="get">
-    <input type="text" name="q" class="form-control" style="max-width: 300px;" placeholder="Buscar por nombre o código" value="{{ request.GET.q }}">
+    <div class="input-group" style="max-width: 320px;">
+        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+        <input type="text" name="q" class="form-control border-start-0" placeholder="Buscar por nombre o código" value="{{ request.GET.q }}">
+    </div>
 </form>
-<table class="table bg-white kpi-card">
+<div class="kpi-card overflow-hidden">
+<table class="table nova-table mb-0">
     <thead><tr><th>Código</th><th>Nombre</th><th>Tipo</th><th>Precio</th><th>Stock</th><th></th></tr></thead>
     <tbody>
     {% for p in productos %}
-        <tr class="{% if p.bajo_stock_minimo %}table-warning{% endif %}">
-            <td>{{ p.codigo }}</td>
-            <td>{{ p.nombre }}</td>
-            <td>{{ p.get_tipo_display }}</td>
+        <tr>
+            <td class="text-muted">{{ p.codigo }}</td>
+            <td class="fw-semibold">{{ p.nombre }}</td>
+            <td><span class="badge-pill icon-indigo">{{ p.get_tipo_display }}</span></td>
             <td>${{ p.precio_venta|floatformat:0 }}</td>
-            <td>{% if p.tipo == "PRODUCTO" %}{{ p.stock_actual }} {{ p.unidad_medida }}{% else %}—{% endif %}</td>
-            <td><a href="{% url 'productos:editar' p.pk %}" class="btn btn-sm btn-outline-secondary">Editar</a></td>
+            <td>
+                {% if p.tipo == "PRODUCTO" %}
+                    <span class="badge-pill {% if p.bajo_stock_minimo %}icon-red{% else %}icon-green{% endif %}">{{ p.stock_actual }} {{ p.unidad_medida }}</span>
+                {% else %}—{% endif %}
+            </td>
+            <td class="text-end"><a href="{% url 'productos:editar' p.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i> Editar</a></td>
         </tr>
     {% empty %}
-        <tr><td colspan="6" class="text-center text-muted">Aún no hay productos registrados.</td></tr>
+        <tr><td colspan="6" class="text-center text-muted py-4">Aún no hay productos registrados.</td></tr>
     {% endfor %}
     </tbody>
 </table>
+</div>
 {% include "partials/paginacion.html" with page_obj=page_obj %}
 {% endblock %}

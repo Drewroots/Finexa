@@ -3,22 +3,22 @@
 {% block contenido %}
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="mb-0">Factura #{{ factura.numero|stringformat:"05d" }}
-        <span class="badge badge-estado-{{ factura.estado }}">{{ factura.get_estado_display }}</span>
+        <span class="badge-pill badge-estado-{{ factura.estado }}">{{ factura.get_estado_display }}</span>
     </h4>
     {% if factura.estado == "BORRADOR" %}
     <form method="post" action="{% url 'facturacion:emitir' factura.pk %}">
         {% csrf_token %}
-        <button type="submit" class="btn btn-primary">Emitir factura</button>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-send-check-fill"></i> Emitir factura</button>
     </form>
     {% endif %}
 </div>
 
 <div class="row">
     <div class="col-md-8">
-        <div class="card kpi-card p-3 mb-3">
-            <p><strong>Cliente:</strong> {{ factura.cliente.razon_social }} ({{ factura.cliente.numero_documento }})</p>
-            <p><strong>Emisión:</strong> {{ factura.fecha_emision }} &nbsp; <strong>Vence:</strong> {{ factura.fecha_vencimiento }}</p>
-            <table class="table table-sm">
+        <div class="kpi-card p-3 mb-3">
+            <p class="mb-1"><i class="bi bi-person-fill text-muted"></i> <strong>Cliente:</strong> {{ factura.cliente.razon_social }} ({{ factura.cliente.numero_documento }})</p>
+            <p class="text-muted small"><i class="bi bi-calendar-event"></i> Emisión: {{ factura.fecha_emision }} &nbsp;·&nbsp; Vence: {{ factura.fecha_vencimiento }}</p>
+            <table class="table nova-table table-sm">
                 <thead><tr><th>Producto</th><th>Cant.</th><th>Precio</th><th>IVA</th><th class="text-end">Total</th></tr></thead>
                 <tbody>
                 {% for item in factura.items.all %}
@@ -32,23 +32,23 @@
                 {% endfor %}
                 </tbody>
             </table>
-            <div class="text-end">
-                <div>Subtotal: ${{ factura.subtotal|floatformat:0 }}</div>
-                <div>IVA: ${{ factura.iva|floatformat:0 }}</div>
+            <div class="text-end pt-2 border-top">
+                <div class="text-muted small">Subtotal: ${{ factura.subtotal|floatformat:0 }}</div>
+                <div class="text-muted small">IVA: ${{ factura.iva|floatformat:0 }}</div>
                 <div class="fw-bold fs-5">Total: ${{ factura.total|floatformat:0 }}</div>
-                <div class="text-danger">Saldo pendiente: ${{ factura.saldo_pendiente|floatformat:0 }}</div>
+                <div class="text-danger fw-semibold small">Saldo pendiente: ${{ factura.saldo_pendiente|floatformat:0 }}</div>
             </div>
         </div>
     </div>
     <div class="col-md-4">
         {% if factura.estado == "EMITIDA" and factura.saldo_pendiente > 0 %}
-        <div class="card kpi-card p-3">
-            <h6>Registrar pago</h6>
+        <div class="kpi-card p-3">
+            <h6><i class="bi bi-cash-coin text-success"></i> Registrar pago</h6>
             <form method="post" action="{% url 'facturacion:pagar' factura.pk %}">
                 {% csrf_token %}
                 {% for field in pago_form %}
                 <div class="mb-2">
-                    <label class="form-label small">{{ field.label }}</label>
+                    <label class="form-label small fw-semibold">{{ field.label }}</label>
                     {{ field }}
                 </div>
                 {% endfor %}

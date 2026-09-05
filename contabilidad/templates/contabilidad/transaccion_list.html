@@ -3,12 +3,12 @@
 {% block contenido %}
 <h4 class="mb-3">Libro diario</h4>
 {% for t in transacciones %}
-<div class="card kpi-card p-3 mb-2">
-    <div class="d-flex justify-content-between">
+<div class="kpi-card p-3 mb-2">
+    <div class="d-flex justify-content-between align-items-start">
         <strong>{{ t.descripcion }}</strong>
         <span class="text-muted small">{{ t.fecha }} · {{ t.documento_origen }}</span>
     </div>
-    <table class="table table-sm mt-2 mb-0">
+    <table class="table nova-table table-sm mt-2 mb-0">
         <thead><tr><th>Cuenta</th><th class="text-end">Débito</th><th class="text-end">Crédito</th></tr></thead>
         <tbody>
         {% for m in t.movimientos.all %}
@@ -22,7 +22,7 @@
     </table>
 </div>
 {% empty %}
-<p class="text-muted">Aún no se han generado asientos contables. Emite una factura para ver tu primer asiento.</p>
+<div class="kpi-card p-4 text-center text-muted">Aún no se han generado asientos contables. Emite una factura para ver tu primer asiento.</div>
 {% endfor %}
 {% include "partials/paginacion.html" with page_obj=page_obj %}
 {% endblock %}
