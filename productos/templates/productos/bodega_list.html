@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block titulo %}Bodegas - NovaERP{% endblock %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">Bodegas</h4>
+    <div class="d-flex gap-2">
+        <a href="{% url 'productos:stock_por_bodega' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-boxes"></i> Stock por bodega</a>
+        <a href="{% url 'productos:bodega_crear' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Nueva bodega</a>
+    </div>
+</div>
+<div class="kpi-card overflow-hidden">
+<table class="table nova-table mb-0">
+    <thead><tr><th>Nombre</th><th>Dirección</th><th>Estado</th><th></th></tr></thead>
+    <tbody>
+    {% for b in bodegas %}
+        <tr>
+            <td class="fw-semibold">{{ b.nombre }}</td>
+            <td class="text-muted">{{ b.direccion|default:"—" }}</td>
+            <td><span class="badge-pill {% if b.activa %}icon-green{% else %}icon-red{% endif %}">{% if b.activa %}Activa{% else %}Inactiva{% endif %}</span></td>
+            <td class="text-end"><a href="{% url 'productos:bodega_editar' b.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i> Editar</a></td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="4" class="text-center text-muted py-4">Aún no hay bodegas registradas.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+{% endblock %}

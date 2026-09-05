@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block titulo %}Liquidación {{ liquidacion.mes }}/{{ liquidacion.anio }} - NovaERP{% endblock %}
+{% block contenido %}
+<h4 class="mb-3">Liquidación {{ liquidacion.mes|stringformat:"02d" }}/{{ liquidacion.anio }} — {{ liquidacion.empleado.nombre_completo }}</h4>
+<div class="row">
+    <div class="col-md-6">
+        <div class="kpi-card p-3 mb-3">
+            <h6 class="fw-bold">Devengado</h6>
+            <table class="table nova-table table-sm mb-0">
+                <tr><td>Salario ({{ liquidacion.dias_trabajados }} días)</td><td class="text-end">${{ liquidacion.salario_base|floatformat:0 }}</td></tr>
+                <tr><td>Auxilio de transporte</td><td class="text-end">${{ liquidacion.auxilio_transporte|floatformat:0 }}</td></tr>
+                <tr><td>Otros devengados</td><td class="text-end">${{ liquidacion.otros_devengados|floatformat:0 }}</td></tr>
+                <tr class="border-top fw-semibold"><td>Total devengado</td><td class="text-end">${{ liquidacion.total_devengado|floatformat:0 }}</td></tr>
+            </table>
+        </div>
+        <div class="kpi-card p-3">
+            <h6 class="fw-bold">Deducciones al empleado</h6>
+            <table class="table nova-table table-sm mb-0">
+                <tr><td>Salud (4%)</td><td class="text-end">${{ liquidacion.salud_empleado|floatformat:0 }}</td></tr>
+                <tr><td>Pensión (4%)</td><td class="text-end">${{ liquidacion.pension_empleado|floatformat:0 }}</td></tr>
+                <tr class="border-top fw-semibold"><td>Total deducciones</td><td class="text-end">${{ liquidacion.total_deducciones|floatformat:0 }}</td></tr>
+            </table>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="kpi-card p-3 mb-3">
+            <h6 class="fw-bold">Aportes patronales y prestaciones (provisión)</h6>
+            <table class="table nova-table table-sm mb-0">
+                <tr><td>Salud empleador (8.5%)</td><td class="text-end">${{ liquidacion.salud_empleador|floatformat:0 }}</td></tr>
+                <tr><td>Pensión empleador (12%)</td><td class="text-end">${{ liquidacion.pension_empleador|floatformat:0 }}</td></tr>
+                <tr><td>ARL</td><td class="text-end">${{ liquidacion.arl|floatformat:0 }}</td></tr>
+                <tr><td>Caja de compensación (4%)</td><td class="text-end">${{ liquidacion.caja_compensacion|floatformat:0 }}</td></tr>
+                <tr><td>Cesantías (8.33%)</td><td class="text-end">${{ liquidacion.cesantias|floatformat:0 }}</td></tr>
+                <tr><td>Intereses de cesantías (1%)</td><td class="text-end">${{ liquidacion.intereses_cesantias|floatformat:0 }}</td></tr>
+                <tr><td>Prima (8.33%)</td><td class="text-end">${{ liquidacion.prima|floatformat:0 }}</td></tr>
+                <tr><td>Vacaciones (4.17%)</td><td class="text-end">${{ liquidacion.vacaciones|floatformat:0 }}</td></tr>
+                <tr class="border-top fw-semibold"><td>Total</td><td class="text-end">${{ liquidacion.total_aportes_patronales_y_prestaciones|floatformat:0 }}</td></tr>
+            </table>
+        </div>
+        <div class="kpi-card p-3 border-top border-3">
+            <div class="d-flex justify-content-between fw-bold fs-5">
+                <span>Neto pagado</span>
+                <span>${{ liquidacion.neto_pagado|floatformat:0 }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+<p class="text-muted small mt-2">Pagado el {{ liquidacion.fecha_pago }}. Asiento contable: <a href="{% url 'contabilidad:libro_diario' %}">ver libro diario</a>.</p>
+{% endblock %}

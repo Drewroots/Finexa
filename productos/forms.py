@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Producto
+from .models import Bodega, Producto
 
 
 class ProductoForm(forms.ModelForm):
@@ -31,4 +31,15 @@ class ProductoForm(forms.ModelForm):
             "stock_actual": forms.NumberInput(attrs={"class": "form-control"}),
             "stock_minimo": forms.NumberInput(attrs={"class": "form-control"}),
             "activo": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        }
+
+
+class BodegaForm(forms.ModelForm):
+    class Meta:
+        model = Bodega
+        fields = ["nombre", "direccion", "activa"]
+        widgets = {
+            "nombre": forms.TextInput(attrs={"class": "form-control"}),
+            "direccion": forms.TextInput(attrs={"class": "form-control"}),
+            "activa": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }

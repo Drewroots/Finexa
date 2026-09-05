@@ -59,6 +59,7 @@ def crear_factura_borrador(empresa, cliente, fecha_emision, fecha_vencimiento, i
         FacturaItem.objects.create(
             factura=factura,
             producto=item["producto"],
+            bodega=item.get("bodega"),
             cantidad=item["cantidad"],
             precio_unitario=item["precio_unitario"],
             porcentaje_iva=item.get("porcentaje_iva", item["producto"].porcentaje_iva),
@@ -87,12 +88,13 @@ def emitir_factura(factura, usuario=None):
     if not factura.items.exists():
         raise ValidationError("La factura no tiene ítems.")
 
-    for item in factura.items.select_related("producto"):
+    for item in factura.items.select_related("producto", "bodega"):
         if item.producto.tipo == "PRODUCTO":
             registrar_movimiento(
                 producto=item.producto,
                 tipo="SALIDA",
                 cantidad=item.cantidad,
+                bodega=item.bodega,
                 usuario=usuario,
                 motivo="Venta",
                 referencia=f"Factura #{factura.numero:05d}",

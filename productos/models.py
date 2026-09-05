@@ -39,6 +39,41 @@ class Producto(models.Model):
         return self.tipo == "PRODUCTO" and self.stock_actual <= self.stock_minimo
 
 
+class Bodega(models.Model):
+    """Ubicacion fisica de inventario (HU-14): cada empresa puede tener varias."""
+
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name="bodegas")
+    nombre = models.CharField(max_length=100)
+    direccion = models.CharField(max_length=255, blank=True)
+    activa = models.BooleanField(default=True)
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Bodega"
+        verbose_name_plural = "Bodegas"
+        ordering = ["nombre"]
+        unique_together = ("empresa", "nombre")
+
+    def __str__(self):
+        return self.nombre
+
+
+class StockPorBodega(models.Model):
+    """Cantidad de un producto disponible en una bodega especifica."""
+
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name="stock_por_bodega")
+    bodega = models.ForeignKey(Bodega, on_delete=models.CASCADE, related_name="stock")
+    cantidad = models.DecimalField(max_digits=14, decimal_places=2, default=Decimal("0"))
+
+    class Meta:
+        verbose_name = "Stock por bodega"
+        verbose_name_plural = "Stock por bodega"
+        unique_together = ("producto", "bodega")
+
+    def __str__(self):
+        return f"{self.producto.codigo} @ {self.bodega.nombre}: {self.cantidad}"
+
+
 class MovimientoInventario(models.Model):
     TIPO_CHOICES = [
         ("ENTRADA", "Entrada"),
@@ -47,6 +82,7 @@ class MovimientoInventario(models.Model):
 
     empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name="movimientos_inventario")
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name="movimientos")
+    bodega = models.ForeignKey(Bodega, on_delete=models.PROTECT, related_name="movimientos", null=True, blank=True)
     tipo = models.CharField(max_length=10, choices=TIPO_CHOICES)
     cantidad = models.DecimalField(max_digits=14, decimal_places=2)
     motivo = models.CharField(max_length=200, blank=True)

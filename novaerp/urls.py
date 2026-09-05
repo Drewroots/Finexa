@@ -11,4 +11,5 @@ urlpatterns = [
     path('contabilidad/', include('contabilidad.urls')),
     path('facturas/', include('facturacion.urls')),
     path('dashboard/', include('dashboard.urls')),
+    path('nomina/', include('nomina.urls')),
 ]

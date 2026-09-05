@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block titulo %}Balance general - NovaERP{% endblock %}
+{% block contenido %}
+<h4 class="mb-3">Balance general</h4>
+<form method="get" class="d-flex gap-2 align-items-end mb-3">
+    <div>
+        <label class="form-label small fw-semibold">Fecha de corte</label>
+        <input type="date" name="fecha_corte" value="{{ fecha_corte|date:'Y-m-d' }}" class="form-control">
+    </div>
+    <button type="submit" class="btn btn-outline-primary">Filtrar</button>
+</form>
+<div class="row">
+    <div class="col-md-6">
+        <div class="kpi-card p-3 mb-3">
+            <h6 class="fw-bold">Activo</h6>
+            <table class="table nova-table table-sm mb-0">
+                <tbody>
+                {% for fila in activo.filas %}
+                    <tr><td>{{ fila.cuenta.codigo }} - {{ fila.cuenta.nombre }}</td><td class="text-end">${{ fila.saldo|floatformat:0 }}</td></tr>
+                {% endfor %}
+                </tbody>
+                <tfoot><tr class="border-top"><td class="fw-bold">Total activo</td><td class="text-end fw-bold">${{ activo.total|floatformat:0 }}</td></tr></tfoot>
+            </table>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="kpi-card p-3 mb-3">
+            <h6 class="fw-bold">Pasivo</h6>
+            <table class="table nova-table table-sm mb-0">
+                <tbody>
+                {% for fila in pasivo.filas %}
+                    <tr><td>{{ fila.cuenta.codigo }} - {{ fila.cuenta.nombre }}</td><td class="text-end">${{ fila.saldo|floatformat:0 }}</td></tr>
+                {% endfor %}
+                </tbody>
+                <tfoot><tr class="border-top"><td class="fw-semibold">Total pasivo</td><td class="text-end fw-semibold">${{ pasivo.total|floatformat:0 }}</td></tr></tfoot>
+            </table>
+        </div>
+        <div class="kpi-card p-3 mb-3">
+            <h6 class="fw-bold">Patrimonio</h6>
+            <table class="table nova-table table-sm mb-0">
+                <tbody>
+                {% for fila in patrimonio.filas %}
+                    <tr><td>{% if fila.cuenta %}{{ fila.cuenta.codigo }} - {{ fila.cuenta.nombre }}{% else %}{{ fila.nombre }}{% endif %}</td><td class="text-end">${{ fila.saldo|floatformat:0 }}</td></tr>
+                {% endfor %}
+                </tbody>
+                <tfoot><tr class="border-top"><td class="fw-semibold">Total patrimonio</td><td class="text-end fw-semibold">${{ patrimonio.total|floatformat:0 }}</td></tr></tfoot>
+            </table>
+        </div>
+        <div class="kpi-card p-3 border-top border-3">
+            <div class="d-flex justify-content-between fw-bold fs-5">
+                <span>Total pasivo + patrimonio</span>
+                <span>${{ total_pasivo_patrimonio|floatformat:0 }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+<p class="text-muted small">Corte al {{ fecha_corte }}.</p>
+{% endblock %}

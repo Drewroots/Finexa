@@ -52,6 +52,9 @@ class Factura(models.Model):
 class FacturaItem(models.Model):
     factura = models.ForeignKey(Factura, on_delete=models.CASCADE, related_name="items")
     producto = models.ForeignKey(Producto, on_delete=models.PROTECT, related_name="items_factura")
+    bodega = models.ForeignKey(
+        "productos.Bodega", on_delete=models.PROTECT, related_name="items_factura", null=True, blank=True
+    )
     cantidad = models.DecimalField(max_digits=14, decimal_places=2, default=Decimal("1"))
     precio_unitario = models.DecimalField(max_digits=14, decimal_places=2)
     porcentaje_iva = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal("19"))

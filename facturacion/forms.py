@@ -26,9 +26,10 @@ class FacturaForm(forms.ModelForm):
 class FacturaItemForm(forms.ModelForm):
     class Meta:
         model = FacturaItem
-        fields = ["producto", "cantidad", "precio_unitario", "porcentaje_iva"]
+        fields = ["producto", "bodega", "cantidad", "precio_unitario", "porcentaje_iva"]
         widgets = {
             "producto": forms.Select(attrs={"class": "form-select"}),
+            "bodega": forms.Select(attrs={"class": "form-select"}),
             "cantidad": forms.NumberInput(attrs={"class": "form-control"}),
             "precio_unitario": forms.NumberInput(attrs={"class": "form-control"}),
             "porcentaje_iva": forms.NumberInput(attrs={"class": "form-control"}),
@@ -36,9 +37,13 @@ class FacturaItemForm(forms.ModelForm):
 
     def __init__(self, *args, empresa=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["bodega"].required = False
         if empresa is not None:
             self.fields["producto"].queryset = self.fields["producto"].queryset.filter(
                 empresa=empresa, activo=True
+            )
+            self.fields["bodega"].queryset = self.fields["bodega"].queryset.filter(
+                empresa=empresa, activa=True
             )
 
 

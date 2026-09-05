@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block titulo %}Estado de resultados - NovaERP{% endblock %}
+{% block contenido %}
+<h4 class="mb-3">Estado de resultados</h4>
+<form method="get" class="d-flex gap-2 align-items-end mb-3">
+    <div>
+        <label class="form-label small fw-semibold">Desde</label>
+        <input type="date" name="fecha_inicio" value="{{ fecha_inicio|date:'Y-m-d' }}" class="form-control">
+    </div>
+    <div>
+        <label class="form-label small fw-semibold">Hasta</label>
+        <input type="date" name="fecha_fin" value="{{ fecha_fin|date:'Y-m-d' }}" class="form-control">
+    </div>
+    <button type="submit" class="btn btn-outline-primary">Filtrar</button>
+</form>
+<div class="kpi-card p-3" style="max-width:520px;">
+    <table class="table nova-table mb-0">
+        <tbody>
+            <tr><td>Ingresos operacionales</td><td class="text-end">${{ ingresos|floatformat:0 }}</td></tr>
+            <tr><td>(-) Costo de ventas</td><td class="text-end">${{ costos|floatformat:0 }}</td></tr>
+            <tr class="border-top"><td class="fw-semibold">Utilidad bruta</td><td class="text-end fw-semibold">${{ utilidad_bruta|floatformat:0 }}</td></tr>
+            <tr><td>(-) Gastos operacionales</td><td class="text-end">${{ gastos|floatformat:0 }}</td></tr>
+            <tr class="border-top"><td class="fw-bold fs-5">Utilidad neta</td><td class="text-end fw-bold fs-5">${{ utilidad_neta|floatformat:0 }}</td></tr>
+        </tbody>
+    </table>
+</div>
+<p class="text-muted small mt-3">Periodo: {{ fecha_inicio }} a {{ fecha_fin }}.</p>
+{% endblock %}

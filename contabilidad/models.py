@@ -83,3 +83,52 @@ class MovimientoContable(models.Model):
 
     def __str__(self):
         return f"{self.cuenta.codigo} D:{self.debito} C:{self.credito}"
+
+
+class TareaCierre(models.Model):
+    """Item del checklist de cierre contable mensual (HU-26)."""
+
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name="tareas_cierre")
+    anio = models.PositiveIntegerField()
+    mes = models.PositiveSmallIntegerField()
+    orden = models.PositiveSmallIntegerField(default=0)
+    descripcion = models.CharField(max_length=255)
+    completada = models.BooleanField(default=False)
+    completada_en = models.DateTimeField(null=True, blank=True)
+    completada_por = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Tarea de cierre"
+        verbose_name_plural = "Tareas de cierre"
+        ordering = ["anio", "mes", "orden"]
+        unique_together = ("empresa", "anio", "mes", "descripcion")
+
+    def __str__(self):
+        return f"{self.anio}-{self.mes:02d}: {self.descripcion}"
+
+
+class MovimientoBancario(models.Model):
+    """Renglón de un extracto bancario cargado manualmente (alternativa a Open
+
+    Banking real, que requeriría un convenio con un banco: HU-27 en
+    docs/HISTORIAS_USUARIO.md). Se concilia contra un MovimientoContable de
+    Caja/Bancos por fecha y valor, automáticamente o a mano.
+    """
+
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name="movimientos_bancarios")
+    fecha = models.DateField()
+    descripcion = models.CharField(max_length=255)
+    valor = models.DecimalField(max_digits=14, decimal_places=2, help_text="Positivo = consignación, negativo = retiro")
+    conciliado = models.BooleanField(default=False)
+    movimiento_contable = models.OneToOneField(
+        MovimientoContable, on_delete=models.SET_NULL, null=True, blank=True, related_name="conciliacion_bancaria"
+    )
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Movimiento bancario"
+        verbose_name_plural = "Movimientos bancarios"
+        ordering = ["-fecha"]
+
+    def __str__(self):
+        return f"{self.fecha} {self.descripcion} ${self.valor}"

@@ -34,11 +34,19 @@
         <nav class="nav flex-column">
             <a class="nav-link {% if request.resolver_match.app_name == 'clientes' %}active{% endif %}" href="{% url 'clientes:lista' %}"><i class="bi bi-people-fill"></i> Clientes/Proveedores</a>
             <a class="nav-link {% if request.resolver_match.app_name == 'productos' %}active{% endif %}" href="{% url 'productos:lista' %}"><i class="bi bi-box-seam-fill"></i> Inventario</a>
+            <a class="nav-link {% if request.resolver_match.url_name == 'bodegas' %}active{% endif %}" href="{% url 'productos:bodegas' %}"><i class="bi bi-building"></i> Bodegas</a>
         </nav>
         <p class="nova-sidebar-section">Contabilidad</p>
         <nav class="nav flex-column">
             <a class="nav-link {% if request.resolver_match.url_name == 'libro_diario' %}active{% endif %}" href="{% url 'contabilidad:libro_diario' %}"><i class="bi bi-journal-text"></i> Libro diario</a>
             <a class="nav-link {% if request.resolver_match.url_name == 'balance' %}active{% endif %}" href="{% url 'contabilidad:balance' %}"><i class="bi bi-bar-chart-fill"></i> Balance</a>
+            <a class="nav-link {% if request.resolver_match.url_name == 'estado_resultados' %}active{% endif %}" href="{% url 'contabilidad:estado_resultados' %}"><i class="bi bi-graph-up-arrow"></i> Estado de resultados</a>
+            <a class="nav-link {% if request.resolver_match.url_name == 'balance_general' %}active{% endif %}" href="{% url 'contabilidad:balance_general' %}"><i class="bi bi-columns-gap"></i> Balance general</a>
+            <a class="nav-link {% if request.resolver_match.url_name == 'cierre' %}active{% endif %}" href="{% url 'contabilidad:cierre' %}"><i class="bi bi-check2-square"></i> Cierre mensual</a>
+        </nav>
+        <p class="nova-sidebar-section">Nómina</p>
+        <nav class="nav flex-column">
+            <a class="nav-link {% if request.resolver_match.app_name == 'nomina' %}active{% endif %}" href="{% url 'nomina:empleados' %}"><i class="bi bi-person-badge-fill"></i> Empleados</a>
         </nav>
         {% if user.es_duenio %}
         <p class="nova-sidebar-section">Administración</p>

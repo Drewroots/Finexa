@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import Q, Sum
 
 from .models import CuentaContable, MovimientoContable, Transaccion
 
@@ -24,10 +25,14 @@ PLAN_CUENTAS_BASE = [
 ]
 
 # Códigos usados por otros módulos para no acoplarse a strings sueltos.
+CUENTA_CAJA = "1105"
+CUENTA_BANCOS = "1110"
 CUENTA_CLIENTES = "1305"
 CUENTA_INVENTARIOS = "1435"
+CUENTA_APORTES_NOMINA_POR_PAGAR = "2365"
 CUENTA_IVA_POR_PAGAR = "2408"
 CUENTA_INGRESOS_VENTAS = "4135"
+CUENTA_GASTO_NOMINA = "5105"
 CUENTA_COSTO_VENTAS = "6135"
 
 
@@ -68,3 +73,79 @@ def crear_transaccion(empresa, fecha, descripcion, lineas, documento_origen="", 
             transaccion=transaccion, cuenta=cuenta, debito=debito, credito=credito
         )
     return transaccion
+
+
+def _saldo_por_tipo(empresa, tipos, fecha_inicio=None, fecha_fin=None):
+    """Suma débitos/créditos de las cuentas de los `tipos` dados, en el rango de fechas."""
+    movimientos = MovimientoContable.objects.filter(cuenta__empresa=empresa, cuenta__tipo__in=tipos)
+    if fecha_inicio:
+        movimientos = movimientos.filter(transaccion__fecha__gte=fecha_inicio)
+    if fecha_fin:
+        movimientos = movimientos.filter(transaccion__fecha__lte=fecha_fin)
+    agregados = movimientos.aggregate(debito=Sum("debito"), credito=Sum("credito"))
+    return agregados["debito"] or Decimal("0"), agregados["credito"] or Decimal("0")
+
+
+def calcular_estado_resultados(empresa, fecha_inicio, fecha_fin):
+    """Estado de resultados (P&G) simplificado: Ingresos - Costos - Gastos = Utilidad neta."""
+    debito_ing, credito_ing = _saldo_por_tipo(empresa, ["INGRESO"], fecha_inicio, fecha_fin)
+    debito_costo, credito_costo = _saldo_por_tipo(empresa, ["COSTO"], fecha_inicio, fecha_fin)
+    debito_gasto, credito_gasto = _saldo_por_tipo(empresa, ["GASTO"], fecha_inicio, fecha_fin)
+
+    ingresos = credito_ing - debito_ing
+    costos = debito_costo - credito_costo
+    gastos = debito_gasto - credito_gasto
+    utilidad_bruta = ingresos - costos
+    utilidad_neta = utilidad_bruta - gastos
+
+    return {
+        "fecha_inicio": fecha_inicio,
+        "fecha_fin": fecha_fin,
+        "ingresos": ingresos,
+        "costos": costos,
+        "utilidad_bruta": utilidad_bruta,
+        "gastos": gastos,
+        "utilidad_neta": utilidad_neta,
+    }
+
+
+def calcular_balance_general(empresa, fecha_corte):
+    """Balance general simplificado agrupado por tipo de cuenta, a una fecha de corte.
+
+    La utilidad del ejercicio (ingresos - costos - gastos desde el inicio hasta la
+    fecha de corte) se suma como una linea mas de Patrimonio para que la ecuacion
+    Activo = Pasivo + Patrimonio cuadre, ya que el modelo no hace cierre contable
+    formal de INGRESO/GASTO/COSTO contra Patrimonio al final de cada periodo.
+    """
+    grupos = {}
+    for tipo, _ in CuentaContable.TIPO_CHOICES:
+        if tipo not in ("ACTIVO", "PASIVO", "PATRIMONIO"):
+            continue
+        cuentas = CuentaContable.objects.filter(empresa=empresa, tipo=tipo).annotate(
+            total_debito=Sum("movimientos__debito", filter=Q(movimientos__transaccion__fecha__lte=fecha_corte)),
+            total_credito=Sum("movimientos__credito", filter=Q(movimientos__transaccion__fecha__lte=fecha_corte)),
+        ).order_by("codigo")
+        filas = []
+        total_grupo = Decimal("0")
+        for cuenta in cuentas:
+            debito = cuenta.total_debito or Decimal("0")
+            credito = cuenta.total_credito or Decimal("0")
+            saldo = (debito - credito) if cuenta.naturaleza == "DEBITO" else (credito - debito)
+            filas.append({"cuenta": cuenta, "saldo": saldo})
+            total_grupo += saldo
+        grupos[tipo] = {"filas": filas, "total": total_grupo}
+
+    estado_resultados = calcular_estado_resultados(empresa, fecha_inicio=None, fecha_fin=fecha_corte)
+    utilidad_neta = estado_resultados["utilidad_neta"]
+    grupos["PATRIMONIO"]["filas"].append(
+        {"cuenta": None, "saldo": utilidad_neta, "nombre": "Utilidad del ejercicio (acumulada)"}
+    )
+    grupos["PATRIMONIO"]["total"] += utilidad_neta
+
+    return {
+        "fecha_corte": fecha_corte,
+        "activo": grupos["ACTIVO"],
+        "pasivo": grupos["PASIVO"],
+        "patrimonio": grupos["PATRIMONIO"],
+        "total_pasivo_patrimonio": grupos["PASIVO"]["total"] + grupos["PATRIMONIO"]["total"],
+    }

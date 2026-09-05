@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Factura, FacturaItem
+from .models import Factura, FacturaItem, NotaCreditoDebito
 
 
 class FacturaItemInline(admin.TabularInline):
@@ -14,3 +14,10 @@ class FacturaAdmin(admin.ModelAdmin):
     list_filter = ("empresa", "estado")
     search_fields = ("numero",)
     inlines = [FacturaItemInline]
+
+
+@admin.register(NotaCreditoDebito)
+class NotaCreditoDebitoAdmin(admin.ModelAdmin):
+    list_display = ("numero", "tipo", "factura", "valor", "fecha", "empresa")
+    list_filter = ("empresa", "tipo")
+    search_fields = ("numero",)
