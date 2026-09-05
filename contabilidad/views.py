@@ -1,7 +1,9 @@
 from datetime import date
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import ValidationError
 from django.db.models import Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -10,7 +12,9 @@ from django.views.generic import ListView
 
 from core.mixins import EmpresaQuerysetMixin
 
-from .models import CuentaContable, TareaCierre, Transaccion
+from .conciliacion import conciliar_automatico, conciliar_manual, importar_extracto_csv, CUENTAS_CAJA_BANCOS
+from .forms import CargarExtractoForm, ConciliarManualForm
+from .models import CuentaContable, MovimientoBancario, MovimientoContable, TareaCierre, Transaccion
 from .services import calcular_balance_general, calcular_estado_resultados
 from .cierre import TAREAS_CIERRE_BASE, obtener_o_crear_checklist
 
@@ -99,3 +103,55 @@ def cierre_marcar_tarea(request, pk):
         tarea.completada_por = request.user if tarea.completada else None
         tarea.save(update_fields=["completada", "completada_en", "completada_por"])
     return redirect(f"{reverse('contabilidad:cierre')}?anio={tarea.anio}&mes={tarea.mes}")
+
+
+@login_required
+def conciliacion_lista(request):
+    empresa = request.empresa
+    if request.method == "POST":
+        form = CargarExtractoForm(request.POST, request.FILES)
+        if form.is_valid():
+            creados, errores = importar_extracto_csv(empresa, request.FILES["archivo"])
+            conciliados = conciliar_automatico(empresa)
+            messages.success(
+                request,
+                f"Se importaron {creados} movimientos y se conciliaron automáticamente {conciliados}.",
+            )
+            for error in errores:
+                messages.warning(request, error)
+        return redirect("contabilidad:conciliacion")
+    else:
+        form = CargarExtractoForm()
+
+    movimientos = MovimientoBancario.objects.filter(empresa=empresa).order_by("-fecha")
+    candidatos = MovimientoContable.objects.filter(
+        cuenta__empresa=empresa, cuenta__codigo__in=CUENTAS_CAJA_BANCOS, conciliacion_bancaria__isnull=True
+    ).select_related("cuenta", "transaccion")
+    opciones = [(m.pk, f"{m.transaccion.fecha} · {m.cuenta.nombre} · D:{m.debito} C:{m.credito} · {m.transaccion.descripcion}") for m in candidatos]
+
+    return render(
+        request,
+        "contabilidad/conciliacion.html",
+        {"form": form, "movimientos": movimientos, "manual_form": ConciliarManualForm(opciones=opciones)},
+    )
+
+
+@login_required
+def conciliacion_marcar_manual(request, pk):
+    movimiento = get_object_or_404(MovimientoBancario, pk=pk, empresa=request.empresa)
+    if request.method == "POST":
+        candidatos = MovimientoContable.objects.filter(
+            cuenta__empresa=request.empresa, cuenta__codigo__in=CUENTAS_CAJA_BANCOS
+        )
+        opciones = [(m.pk, str(m.pk)) for m in candidatos]
+        form = ConciliarManualForm(request.POST, opciones=opciones)
+        if form.is_valid():
+            movimiento_contable = get_object_or_404(
+                MovimientoContable, pk=form.cleaned_data["movimiento_contable"], cuenta__empresa=request.empresa
+            )
+            try:
+                conciliar_manual(movimiento, movimiento_contable)
+                messages.success(request, "Movimiento conciliado.")
+            except ValidationError as exc:
+                messages.error(request, str(exc))
+    return redirect("contabilidad:conciliacion")

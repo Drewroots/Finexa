@@ -43,6 +43,7 @@
             <a class="nav-link {% if request.resolver_match.url_name == 'estado_resultados' %}active{% endif %}" href="{% url 'contabilidad:estado_resultados' %}"><i class="bi bi-graph-up-arrow"></i> Estado de resultados</a>
             <a class="nav-link {% if request.resolver_match.url_name == 'balance_general' %}active{% endif %}" href="{% url 'contabilidad:balance_general' %}"><i class="bi bi-columns-gap"></i> Balance general</a>
             <a class="nav-link {% if request.resolver_match.url_name == 'cierre' %}active{% endif %}" href="{% url 'contabilidad:cierre' %}"><i class="bi bi-check2-square"></i> Cierre mensual</a>
+            <a class="nav-link {% if request.resolver_match.url_name == 'conciliacion' %}active{% endif %}" href="{% url 'contabilidad:conciliacion' %}"><i class="bi bi-bank"></i> Conciliación bancaria</a>
         </nav>
         <p class="nova-sidebar-section">Nómina</p>
         <nav class="nav flex-column">

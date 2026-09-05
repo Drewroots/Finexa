@@ -20,9 +20,16 @@ def registrar_movimiento(producto, tipo, cantidad, bodega=None, usuario=None, mo
     `Producto.stock_actual` se mantiene como la suma de todas sus bodegas, para no
     romper el resto del sistema (KPIs, alertas de stock minimo) que lo lee directamente.
     """
-    bodega = bodega or obtener_bodega_principal(producto.empresa)
+    bodega_principal = obtener_bodega_principal(producto.empresa)
+    bodega = bodega or bodega_principal
 
-    stock, _ = StockPorBodega.objects.select_for_update().get_or_create(producto=producto, bodega=bodega)
+    # Si el producto ya tenia `stock_actual` sin desglosar por bodega (p.ej. uno
+    # recien creado), ese saldo se asume en la bodega principal la primera vez
+    # que se le registra un movimiento, en vez de arrancar en cero.
+    valor_inicial = producto.stock_actual if bodega.pk == bodega_principal.pk else Decimal("0")
+    stock, _ = StockPorBodega.objects.select_for_update().get_or_create(
+        producto=producto, bodega=bodega, defaults={"cantidad": valor_inicial}
+    )
     if tipo == "SALIDA":
         stock.cantidad -= cantidad
     else:
