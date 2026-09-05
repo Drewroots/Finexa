@@ -36,11 +36,11 @@ Crea la empresa demo "Panadería La Espiga Demo" con usuario `demo` / contraseñ
 ## Próximos pasos sugeridos (en orden de impacto)
 
 1. **Cuentas por pagar a proveedores** — hoy solo existe CxC de clientes; falta el flujo espejo de compras/gastos.
-2. **Notas crédito/débito** sobre facturas ya emitidas (HU-35).
-3. **Reportes financieros formales** — estado de resultados y balance general con formato NIIF pyme, no solo el balance de comprobación crudo (HU-43).
-4. **Integración DIAN real** vía un Proveedor Tecnológico Autorizado — es el riesgo más crítico señalado en el documento de planeación original y debe validarse externamente antes de cualquier lanzamiento comercial (HU-33).
+2. **Notas crédito/débito** sobre facturas ya emitidas (HU-21).
+3. **Reportes financieros formales** — estado de resultados y balance general con formato NIIF pyme, no solo el balance de comprobación crudo (HU-25).
+4. **Integración DIAN real** vía un Proveedor Tecnológico Autorizado — es el riesgo más crítico señalado en el documento de planeación original y debe validarse externamente antes de cualquier lanzamiento comercial (HU-19).
 5. **Nómina electrónica** (fase 5 completa).
-6. **Asistente con LLM real** conectado a los mismos KPIs que ya calcula `dashboard.services.calcular_kpis`, reemplazando las reglas por un modelo de lenguaje con contexto del negocio (HU-63).
+6. **Asistente con LLM real** conectado a los mismos KPIs que ya calcula `dashboard.services.calcular_kpis`, reemplazando las reglas por un modelo de lenguaje con contexto del negocio (HU-33).
 7. **POS offline-first** para ventas físicas (React Native + SQLite local, como en el plan original) — hoy la facturación asume conexión permanente.
 
 ## Riesgos vigentes (heredados del documento de planeación)
