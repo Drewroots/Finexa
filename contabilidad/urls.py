@@ -13,4 +13,6 @@ urlpatterns = [
     path("cierre/<int:pk>/marcar/", views.cierre_marcar_tarea, name="cierre_marcar"),
     path("conciliacion/", views.conciliacion_lista, name="conciliacion"),
     path("conciliacion/<int:pk>/marcar/", views.conciliacion_marcar_manual, name="conciliacion_marcar"),
+    path("puc/", views.puc_referencia, name="puc_referencia"),
+    path("puc/descargar/", views.puc_descargar_csv, name="puc_descargar"),
 ]

@@ -47,6 +47,7 @@
             <a class="nav-link {% if request.resolver_match.url_name == 'balance_general' %}active{% endif %}" href="{% url 'contabilidad:balance_general' %}"><i class="bi bi-columns-gap"></i> Balance general</a>
             <a class="nav-link {% if request.resolver_match.url_name == 'cierre' %}active{% endif %}" href="{% url 'contabilidad:cierre' %}"><i class="bi bi-check2-square"></i> Cierre mensual</a>
             <a class="nav-link {% if request.resolver_match.url_name == 'conciliacion' %}active{% endif %}" href="{% url 'contabilidad:conciliacion' %}"><i class="bi bi-bank"></i> Conciliación bancaria</a>
+            <a class="nav-link {% if request.resolver_match.url_name == 'puc_referencia' %}active{% endif %}" href="{% url 'contabilidad:puc_referencia' %}"><i class="bi bi-question-circle"></i> Ayuda: Plan de cuentas (PUC)</a>
         </nav>
         <p class="nova-sidebar-section">Nómina</p>
         <nav class="nav flex-column">

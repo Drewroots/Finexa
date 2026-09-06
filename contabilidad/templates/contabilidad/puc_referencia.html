@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block titulo %}Plan Único de Cuentas (PUC) - NovaERP{% endblock %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+        <h4 class="mb-1">Plan Único de Cuentas (PUC)</h4>
+        <p class="text-muted small mb-0">Catálogo de referencia para comerciantes — Decreto 2650 de 1993. Consulta libre, no depende de tu empresa.</p>
+    </div>
+    <a href="{% url 'contabilidad:puc_descargar' %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-download"></i> Descargar CSV</a>
+</div>
+
+<div class="input-group mb-3" style="max-width: 420px;">
+    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+    <input type="text" id="puc-buscador" class="form-control border-start-0" placeholder="Buscar por código o nombre (ej. 1105, caja, nómina)">
+</div>
+
+<p class="small text-muted" id="puc-sin-resultados" hidden>No se encontraron cuentas para esa búsqueda.</p>
+
+<div id="puc-contenido">
+{% for clase in clases %}
+    <div class="kpi-card overflow-hidden mb-3 puc-clase-bloque">
+        <div class="p-3 border-bottom">
+            <span class="badge-pill icon-indigo fs-6">Clase {{ clase.codigo }}</span>
+            <strong class="ms-1">{{ clase.nombre }}</strong>
+        </div>
+        <table class="table nova-table mb-0">
+            <tbody>
+            {% for fila in clase.filas %}
+                {% if fila.nivel == "grupo" %}
+                <tr class="table-light puc-fila" data-buscar="{{ fila.codigo }} {{ fila.nombre|lower }}">
+                    <td colspan="3" class="fw-bold">Grupo {{ fila.codigo }} — {{ fila.nombre }}</td>
+                </tr>
+                {% else %}
+                <tr class="puc-fila" data-buscar="{{ fila.codigo }} {{ fila.nombre|lower }}">
+                    <td class="text-muted" style="width:5rem;">{{ fila.codigo }}</td>
+                    <td>{{ fila.nombre }}</td>
+                    <td style="width:6rem;"><span class="badge-pill {% if fila.naturaleza == 'DEBITO' %}icon-green{% else %}icon-red{% endif %}">{{ fila.naturaleza|title }}</span></td>
+                </tr>
+                {% endif %}
+            {% empty %}
+                <tr><td class="text-muted small p-3">Esta clase aún no tiene cuentas de 4 dígitos publicadas a este nivel de detalle (solo grupos).</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endfor %}
+</div>
+
+<p class="text-muted small mt-2">
+    Fuente: Decreto 2650 de 1993 (Plan Único de Cuentas para comerciantes) y puc.com.co. Se muestra a nivel de clase/grupo/cuenta (4 dígitos) — el mismo nivel de detalle que usa el motor contable de NovaERP; no incluye subcuentas de 6 dígitos. La Clase 7 (Costos de producción) solo se publica aquí a nivel de grupo, ya que aplica sobre todo a empresas manufactureras.
+</p>
+
+<script>
+(function () {
+    const buscador = document.getElementById('puc-buscador');
+    const filas = document.querySelectorAll('.puc-fila');
+    const bloques = document.querySelectorAll('.puc-clase-bloque');
+    const sinResultados = document.getElementById('puc-sin-resultados');
+
+    buscador.addEventListener('input', function () {
+        const termino = this.value.trim().toLowerCase();
+        let totalVisible = 0;
+
+        bloques.forEach(function (bloque) {
+            let visiblesEnBloque = 0;
+            bloque.querySelectorAll('.puc-fila').forEach(function (fila) {
+                const coincide = !termino || fila.dataset.buscar.includes(termino);
+                fila.hidden = !coincide;
+                if (coincide) visiblesEnBloque++;
+            });
+            bloque.hidden = visiblesEnBloque === 0;
+            totalVisible += visiblesEnBloque;
+        });
+
+        sinResultados.hidden = totalVisible !== 0;
+    });
+})();
+</script>
+{% endblock %}

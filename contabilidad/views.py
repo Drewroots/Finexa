@@ -1,3 +1,4 @@
+import csv
 from datetime import date
 
 from django.contrib import messages
@@ -5,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
 from django.db.models import Sum
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -17,6 +19,7 @@ from .forms import CargarExtractoForm, ConciliarManualForm
 from .models import CuentaContable, MovimientoBancario, MovimientoContable, TareaCierre, Transaccion
 from .services import calcular_balance_general, calcular_estado_resultados
 from .cierre import TAREAS_CIERRE_BASE, obtener_o_crear_checklist
+from .puc_data import PUC_CATALOGO_PLANO
 
 
 class TransaccionListView(EmpresaQuerysetMixin, ListView):
@@ -155,3 +158,34 @@ def conciliacion_marcar_manual(request, pk):
             except ValidationError as exc:
                 messages.error(request, str(exc))
     return redirect("contabilidad:conciliacion")
+
+
+@login_required
+def puc_referencia(request):
+    """Panel de ayuda: catalogo completo del PUC (Decreto 2650) a nivel de
+    clase/grupo/cuenta, como referencia de consulta (no depende de la empresa)."""
+    clases = []
+    for codigo, clase in sorted(
+        ((f["clase"], f) for f in PUC_CATALOGO_PLANO if f["nivel"] == "clase"),
+        key=lambda par: par[0],
+    ):
+        cuentas_y_grupos = [
+            f for f in PUC_CATALOGO_PLANO
+            if f["clase"] == codigo and f["nivel"] in ("grupo", "cuenta")
+        ]
+        clases.append({"codigo": codigo, "nombre": clase["nombre"], "filas": cuentas_y_grupos})
+    return render(request, "contabilidad/puc_referencia.html", {"clases": clases})
+
+
+@login_required
+def puc_descargar_csv(request):
+    response = HttpResponse(content_type="text/csv; charset=utf-8-sig")
+    response["Content-Disposition"] = "attachment; filename=puc_decreto_2650.csv"
+    writer = csv.writer(response)
+    writer.writerow(["codigo", "nombre", "nivel", "clase", "clase_nombre", "grupo", "grupo_nombre", "naturaleza"])
+    for fila in PUC_CATALOGO_PLANO:
+        writer.writerow([
+            fila["codigo"], fila["nombre"], fila["nivel"], fila["clase"], fila["clase_nombre"],
+            fila["grupo"], fila["grupo_nombre"], fila["naturaleza"],
+        ])
+    return response
