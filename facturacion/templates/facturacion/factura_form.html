@@ -22,12 +22,13 @@
         {% if formset.non_form_errors %}<div class="alert alert-danger">{{ formset.non_form_errors }}</div>{% endif %}
         {{ formset.management_form }}
         <table class="table table-sm">
-            <thead><tr><th>Producto</th><th>Cantidad</th><th>Precio unitario</th><th>% IVA</th><th>Eliminar</th></tr></thead>
+            <thead><tr><th>Producto</th><th>Bodega</th><th>Cantidad</th><th>Precio unitario</th><th>% IVA</th><th>Eliminar</th></tr></thead>
             <tbody>
             {% for item_form in formset %}
                 <tr>
                     {% for hidden in item_form.hidden_fields %}{{ hidden }}{% endfor %}
                     <td>{{ item_form.producto }}</td>
+                    <td>{{ item_form.bodega }}</td>
                     <td>{{ item_form.cantidad }}</td>
                     <td>{{ item_form.precio_unitario }}</td>
                     <td>{{ item_form.porcentaje_iva }}</td>
@@ -36,6 +37,7 @@
             {% endfor %}
             </tbody>
         </table>
+        <p class="text-muted small mb-0">Si no eliges bodega, se descuenta de la bodega "Principal".</p>
     </div>
 
     <button type="submit" class="btn btn-primary">Guardar borrador</button>
