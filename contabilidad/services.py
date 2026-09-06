@@ -16,7 +16,7 @@ PLAN_CUENTAS_BASE = [
     ("1435", "Inventarios", "ACTIVO", "DEBITO"),
     ("2205", "Proveedores (Cuentas por pagar)", "PASIVO", "CREDITO"),
     ("2408", "IVA por pagar", "PASIVO", "CREDITO"),
-    ("2365", "Retenciones y aportes de nómina por pagar", "PASIVO", "CREDITO"),
+    ("2370", "Retenciones y aportes de nómina", "PASIVO", "CREDITO"),
     ("3105", "Capital social", "PATRIMONIO", "CREDITO"),
     ("4135", "Ingresos por ventas", "INGRESO", "CREDITO"),
     ("5135", "Gastos generales", "GASTO", "DEBITO"),
@@ -29,7 +29,7 @@ CUENTA_CAJA = "1105"
 CUENTA_BANCOS = "1110"
 CUENTA_CLIENTES = "1305"
 CUENTA_INVENTARIOS = "1435"
-CUENTA_APORTES_NOMINA_POR_PAGAR = "2365"
+CUENTA_APORTES_NOMINA_POR_PAGAR = "2370"
 CUENTA_IVA_POR_PAGAR = "2408"
 CUENTA_INGRESOS_VENTAS = "4135"
 CUENTA_GASTO_NOMINA = "5105"
