@@ -21,14 +21,9 @@
 <div id="puc-contenido">
 {% for clase in clases %}
     <div class="kpi-card overflow-hidden mb-3 puc-clase-bloque" id="clase-{{ clase.codigo }}">
-        <div class="p-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div>
-                <span class="badge-pill icon-indigo fs-6">Clase {{ clase.codigo }}</span>
-                <strong class="ms-1">{{ clase.nombre }}</strong>
-            </div>
-            <a href="{% url 'contabilidad:puc_auxiliar_crear' clase.codigo %}" class="btn btn-sm btn-outline-warning">
-                <i class="bi bi-plus-lg"></i> Auxiliar
-            </a>
+        <div class="p-3 border-bottom">
+            <span class="badge-pill icon-indigo fs-6">Clase {{ clase.codigo }}</span>
+            <strong class="ms-1">{{ clase.nombre }}</strong>
         </div>
         <table class="table nova-table mb-0">
             <tbody>
