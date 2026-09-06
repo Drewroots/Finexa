@@ -179,9 +179,9 @@ def puc_referencia(request):
     """Panel de ayuda: catalogo completo del PUC (Decreto 2650) a nivel de
     clase/grupo/cuenta, como referencia de consulta, mas las cuentas
     auxiliares que esta empresa haya creado manualmente (Art. 7 Decreto 2650)."""
-    auxiliares_por_grupo = {}
+    auxiliares_por_cuenta = {}
     for cuenta in CuentaContable.objects.filter(empresa=request.empresa).exclude(codigo__in=CODIGOS_PLAN_BASE):
-        auxiliares_por_grupo.setdefault(cuenta.codigo[:2], []).append(cuenta)
+        auxiliares_por_cuenta.setdefault(cuenta.codigo[:4], []).append(cuenta)
 
     clases = []
     for codigo, clase in sorted(
@@ -195,9 +195,9 @@ def puc_referencia(request):
             if f["clase"] == codigo and f["nivel"] in ("grupo", "cuenta")
         ]
         for fila in cuentas_y_grupos:
-            if fila["nivel"] == "grupo":
+            if fila["nivel"] == "cuenta":
                 fila["auxiliares"] = sorted(
-                    auxiliares_por_grupo.get(fila["codigo"], []), key=lambda c: c.codigo
+                    auxiliares_por_cuenta.get(fila["codigo"], []), key=lambda c: c.codigo
                 )
         clases.append({"codigo": codigo, "nombre": clase["nombre"], "filas": cuentas_y_grupos})
     return render(request, "contabilidad/puc_referencia.html", {"clases": clases})
