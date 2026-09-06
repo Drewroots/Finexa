@@ -15,4 +15,6 @@ urlpatterns = [
     path("conciliacion/<int:pk>/marcar/", views.conciliacion_marcar_manual, name="conciliacion_marcar"),
     path("puc/", views.puc_referencia, name="puc_referencia"),
     path("puc/descargar/", views.puc_descargar_csv, name="puc_descargar"),
+    path("puc/auxiliar/nuevo/<str:clase>/", views.puc_auxiliar_crear, name="puc_auxiliar_crear"),
+    path("puc/auxiliar/<int:pk>/editar/", views.puc_auxiliar_editar, name="puc_auxiliar_editar"),
 ]

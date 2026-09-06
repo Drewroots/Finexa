@@ -15,6 +15,8 @@ class CuentaContable(models.Model):
         ("INGRESO", "Ingreso"),
         ("GASTO", "Gasto"),
         ("COSTO", "Costo"),
+        ("ORDEN_DEUDORA", "Cuenta de orden deudora"),
+        ("ORDEN_ACREEDORA", "Cuenta de orden acreedora"),
     ]
     NATURALEZA_CHOICES = [("DEBITO", "Débito"), ("CREDITO", "Crédito")]
 

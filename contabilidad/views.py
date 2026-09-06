@@ -5,8 +5,9 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 from django.db.models import Sum
-from django.http import HttpResponse
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -15,11 +16,24 @@ from django.views.generic import ListView
 from core.mixins import EmpresaQuerysetMixin
 
 from .conciliacion import conciliar_automatico, conciliar_manual, importar_extracto_csv, CUENTAS_CAJA_BANCOS
-from .forms import CargarExtractoForm, ConciliarManualForm
+from .forms import AuxiliarCuentaForm, CargarExtractoForm, ConciliarManualForm
 from .models import CuentaContable, MovimientoBancario, MovimientoContable, TareaCierre, Transaccion
-from .services import calcular_balance_general, calcular_estado_resultados
+from .services import calcular_balance_general, calcular_estado_resultados, PLAN_CUENTAS_BASE
 from .cierre import TAREAS_CIERRE_BASE, obtener_o_crear_checklist
-from .puc_data import PUC_CATALOGO_PLANO
+from .puc_data import NATURALEZA_POR_CLASE, PUC_CATALOGO_PLANO
+
+CLASE_A_TIPO = {
+    "1": "ACTIVO",
+    "2": "PASIVO",
+    "3": "PATRIMONIO",
+    "4": "INGRESO",
+    "5": "GASTO",
+    "6": "COSTO",
+    "7": "COSTO",
+    "8": "ORDEN_DEUDORA",
+    "9": "ORDEN_ACREEDORA",
+}
+CODIGOS_PLAN_BASE = {codigo for codigo, _, _, _ in PLAN_CUENTAS_BASE}
 
 
 class TransaccionListView(EmpresaQuerysetMixin, ListView):
@@ -163,16 +177,28 @@ def conciliacion_marcar_manual(request, pk):
 @login_required
 def puc_referencia(request):
     """Panel de ayuda: catalogo completo del PUC (Decreto 2650) a nivel de
-    clase/grupo/cuenta, como referencia de consulta (no depende de la empresa)."""
+    clase/grupo/cuenta, como referencia de consulta, mas las cuentas
+    auxiliares que esta empresa haya creado manualmente (Art. 7 Decreto 2650)."""
+    auxiliares_por_grupo = {}
+    for cuenta in CuentaContable.objects.filter(empresa=request.empresa).exclude(codigo__in=CODIGOS_PLAN_BASE):
+        auxiliares_por_grupo.setdefault(cuenta.codigo[:2], []).append(cuenta)
+
     clases = []
     for codigo, clase in sorted(
         ((f["clase"], f) for f in PUC_CATALOGO_PLANO if f["nivel"] == "clase"),
         key=lambda par: par[0],
     ):
+        # dict(f) copia cada fila: PUC_CATALOGO_PLANO es un modulo global compartido
+        # entre requests, no se debe mutar directamente (fuga de datos entre tenants).
         cuentas_y_grupos = [
-            f for f in PUC_CATALOGO_PLANO
+            dict(f) for f in PUC_CATALOGO_PLANO
             if f["clase"] == codigo and f["nivel"] in ("grupo", "cuenta")
         ]
+        for fila in cuentas_y_grupos:
+            if fila["nivel"] == "grupo":
+                fila["auxiliares"] = sorted(
+                    auxiliares_por_grupo.get(fila["codigo"], []), key=lambda c: c.codigo
+                )
         clases.append({"codigo": codigo, "nombre": clase["nombre"], "filas": cuentas_y_grupos})
     return render(request, "contabilidad/puc_referencia.html", {"clases": clases})
 
@@ -189,3 +215,64 @@ def puc_descargar_csv(request):
             fila["grupo"], fila["grupo_nombre"], fila["naturaleza"],
         ])
     return response
+
+
+@login_required
+def puc_auxiliar_crear(request, clase):
+    """Alta de una cuenta auxiliar (Art. 7 Decreto 2650) para la empresa actual,
+    dentro de la clase indicada. El tipo/naturaleza los fija la clase, no el usuario."""
+    if clase not in CLASE_A_TIPO:
+        raise Http404
+    tipo = CLASE_A_TIPO[clase]
+    naturaleza = NATURALEZA_POR_CLASE[clase]
+
+    if request.method == "POST":
+        form = AuxiliarCuentaForm(request.POST, empresa=request.empresa, tipo=tipo)
+        if form.is_valid():
+            cuenta = form.save(commit=False)
+            cuenta.empresa = request.empresa
+            cuenta.tipo = tipo
+            cuenta.naturaleza = naturaleza
+            try:
+                cuenta.save()
+                messages.success(request, f"Cuenta auxiliar {cuenta.codigo} creada.")
+                return redirect(f"{reverse('contabilidad:puc_referencia')}#clase-{clase}")
+            except IntegrityError:
+                form.add_error("codigo", "Ya existe una cuenta con ese código en tu empresa.")
+    else:
+        prefijo = request.GET.get("prefijo", "")
+        form = AuxiliarCuentaForm(empresa=request.empresa, tipo=tipo, initial={"codigo": prefijo})
+
+    return render(
+        request,
+        "contabilidad/puc_auxiliar_form.html",
+        {"form": form, "clase": clase, "tipo": tipo, "editar": False},
+    )
+
+
+@login_required
+def puc_auxiliar_editar(request, pk):
+    cuenta = get_object_or_404(
+        CuentaContable, pk=pk, empresa=request.empresa
+    )
+    if cuenta.codigo in CODIGOS_PLAN_BASE:
+        raise Http404("Esta cuenta pertenece al plan base y no se edita desde aquí.")
+    clase = cuenta.codigo[0]
+
+    if request.method == "POST":
+        form = AuxiliarCuentaForm(request.POST, instance=cuenta, empresa=request.empresa, tipo=cuenta.tipo)
+        if form.is_valid():
+            try:
+                form.save()
+                messages.success(request, f"Cuenta auxiliar {cuenta.codigo} actualizada.")
+                return redirect(f"{reverse('contabilidad:puc_referencia')}#clase-{clase}")
+            except IntegrityError:
+                form.add_error("codigo", "Ya existe una cuenta con ese código en tu empresa.")
+    else:
+        form = AuxiliarCuentaForm(instance=cuenta, empresa=request.empresa, tipo=cuenta.tipo)
+
+    return render(
+        request,
+        "contabilidad/puc_auxiliar_form.html",
+        {"form": form, "clase": clase, "tipo": cuenta.tipo, "editar": True, "cuenta": cuenta},
+    )

@@ -14,22 +14,46 @@
     <input type="text" id="puc-buscador" class="form-control border-start-0" placeholder="Buscar por código o nombre (ej. 1105, caja, nómina)">
 </div>
 
+<p class="small mb-3"><span class="puc-auxiliar-muestra">Auxiliar</span> — así se ven las cuentas que tu empresa creó manualmente, para diferenciarlas de las oficiales del PUC.</p>
+
 <p class="small text-muted" id="puc-sin-resultados" hidden>No se encontraron cuentas para esa búsqueda.</p>
 
 <div id="puc-contenido">
 {% for clase in clases %}
-    <div class="kpi-card overflow-hidden mb-3 puc-clase-bloque">
-        <div class="p-3 border-bottom">
-            <span class="badge-pill icon-indigo fs-6">Clase {{ clase.codigo }}</span>
-            <strong class="ms-1">{{ clase.nombre }}</strong>
+    <div class="kpi-card overflow-hidden mb-3 puc-clase-bloque" id="clase-{{ clase.codigo }}">
+        <div class="p-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <span class="badge-pill icon-indigo fs-6">Clase {{ clase.codigo }}</span>
+                <strong class="ms-1">{{ clase.nombre }}</strong>
+            </div>
+            <a href="{% url 'contabilidad:puc_auxiliar_crear' clase.codigo %}" class="btn btn-sm btn-outline-warning">
+                <i class="bi bi-plus-lg"></i> Auxiliar
+            </a>
         </div>
         <table class="table nova-table mb-0">
             <tbody>
             {% for fila in clase.filas %}
                 {% if fila.nivel == "grupo" %}
                 <tr class="table-light puc-fila" data-buscar="{{ fila.codigo }} {{ fila.nombre|lower }}">
-                    <td colspan="3" class="fw-bold">Grupo {{ fila.codigo }} — {{ fila.nombre }}</td>
+                    <td class="fw-bold">Grupo {{ fila.codigo }} — {{ fila.nombre }}</td>
+                    <td></td>
+                    <td class="text-end">
+                        <a href="{% url 'contabilidad:puc_auxiliar_crear' clase.codigo %}?prefijo={{ fila.codigo }}" class="btn btn-sm btn-outline-warning py-0">
+                            <i class="bi bi-plus-lg"></i> Auxiliar
+                        </a>
+                    </td>
                 </tr>
+                {% for aux in fila.auxiliares %}
+                <tr class="puc-fila puc-fila-auxiliar" data-buscar="{{ aux.codigo }} {{ aux.nombre|lower }}">
+                    <td class="text-muted" style="width:5rem;">{{ aux.codigo }}</td>
+                    <td>
+                        <span class="puc-auxiliar-muestra">Auxiliar</span>
+                        {{ aux.nombre }}
+                        {% if not aux.activa %}<span class="badge-pill icon-red ms-1">Inactiva</span>{% endif %}
+                    </td>
+                    <td class="text-end"><a href="{% url 'contabilidad:puc_auxiliar_editar' aux.pk %}" class="btn btn-sm btn-outline-secondary py-0"><i class="bi bi-pencil"></i></a></td>
+                </tr>
+                {% endfor %}
                 {% else %}
                 <tr class="puc-fila" data-buscar="{{ fila.codigo }} {{ fila.nombre|lower }}">
                     <td class="text-muted" style="width:5rem;">{{ fila.codigo }}</td>
@@ -47,8 +71,28 @@
 </div>
 
 <p class="text-muted small mt-2">
-    Fuente: Decreto 2650 de 1993 (Plan Único de Cuentas para comerciantes) y puc.com.co. Se muestra a nivel de clase/grupo/cuenta (4 dígitos) — el mismo nivel de detalle que usa el motor contable de NovaERP; no incluye subcuentas de 6 dígitos. La Clase 7 (Costos de producción) solo se publica aquí a nivel de grupo, ya que aplica sobre todo a empresas manufactureras.
+    Fuente: Decreto 2650 de 1993 (Plan Único de Cuentas para comerciantes) y puc.com.co. Se muestra a nivel de clase/grupo/cuenta (4 dígitos) — el mismo nivel de detalle que usa el motor contable de NovaERP; no incluye subcuentas de 6 dígitos. La Clase 7 (Costos de producción) solo se publica aquí a nivel de grupo, ya que aplica sobre todo a empresas manufactureras. Las cuentas <strong>Auxiliar</strong> (Art. 7 del decreto) son propias de tu empresa: tú las creas y solo tú las ves.
 </p>
+
+<style>
+.puc-auxiliar-muestra {
+    display: inline-block;
+    font-style: italic;
+    font-weight: 600;
+    font-size: 0.7rem;
+    color: #b8860b;
+    background: rgba(184, 134, 11, 0.12);
+    border: 1px solid rgba(184, 134, 11, 0.35);
+    border-radius: 999px;
+    padding: 0.05rem 0.5rem;
+    margin-right: 0.4rem;
+    vertical-align: middle;
+}
+.puc-fila-auxiliar td {
+    font-style: italic;
+    color: #8a6d1f;
+}
+</style>
 
 <script>
 (function () {
